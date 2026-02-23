@@ -1,0 +1,110 @@
+.hero {
+  position: relative;
+  padding: var(--space-3xl) var(--space-xl) var(--space-2xl);
+  overflow: hidden;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 201, 4, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.hero__inner {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hero__badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.hero__title {
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--ucf-black);
+  margin-bottom: var(--space-lg);
+}
+
+.hero__title-accent {
+  color: var(--ucf-gold);
+  display: inline-block;
+}
+
+.hero__subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 0 auto var(--space-xl);
+  line-height: 1.6;
+}
+
+.hero__search-wrap {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.hero__search-icon {
+  position: absolute;
+  left: var(--space-lg);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hero__search {
+  width: 100%;
+  padding: var(--space-md) var(--space-lg) var(--space-md) 3rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.hero__search::placeholder {
+  color: var(--text-soft);
+}
+
+.hero__search:hover {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.hero__search:focus {
+  outline: none;
+  border-color: var(--ucf-gold);
+  box-shadow: 0 0 0 4px rgba(255, 201, 4, 0.2);
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .hero__search {
+    padding-left: 2.75rem;
+  }
+
+  .hero__search-icon {
+    left: var(--space-md);
+  }
+}
