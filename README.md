@@ -1,10 +1,10 @@
 # KnightLife / UCF Connected
 
-A full-stack app that helps students stay on top of their club schedule by adding club meetings directly to their Google Calendar. Never miss a meeting again. Keep track of your favorite RSO's activities.
+A full-stack app that helps students stay on top of their club schedule by adding club meetings directly to their Google Calendar. Never miss a meeting again. Keep track of your favorite RSO's activities, events, projects, etc.
 
 ## What it does
 
-UCF Connected lets students:
+KnightLife lets students:
 
 - **See club meetings** — Browse meetings for clubs they’re in or interested in.
 - **Add to Google Calendar** — One-click add meetings to their Google Calendar so they get reminders and don’t forget when things are happening.
