@@ -19,7 +19,7 @@ export default function EventCard({ event }) {
     location,
     description,
     confidence,
-    source_post_id,
+    source_post_permalink,
   } = event
 
   return (
@@ -67,9 +67,9 @@ export default function EventCard({ event }) {
           <span className="event-card__confidence-dot" aria-hidden />
           {confidenceLabel(confidence)}
         </span>
-        {source_post_id && (
+        {source_post_permalink && (
           <a
-            href={`https://www.instagram.com/p/${source_post_id}/`}
+            href={source_post_permalink}
             target="_blank"
             rel="noopener noreferrer"
             className="event-card__source"
