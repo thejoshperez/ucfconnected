@@ -41,6 +41,7 @@ class EventRead(EventBase):
 
     id: int
     created_at: datetime
+    source_post_permalink: str | None = None
 
 
 class ExtractedEventPayload(BaseModel):

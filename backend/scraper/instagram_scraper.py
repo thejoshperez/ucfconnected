@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import timezone
+from datetime import date, datetime, timezone
 
 import instaloader
 from sqlalchemy import select
@@ -106,16 +106,23 @@ async def scrape_account(loader: instaloader.Instaloader, username: str) -> int:
         logger.error("Failed to load profile @%s: %s", username, exc)
         return 0
 
+    from datetime import timedelta
+    today = datetime.combine(date.today() - timedelta(days=2), datetime.min.time(), tzinfo=timezone.utc)
     new_count = 0
     async with AsyncSessionLocal() as session:
         for post in profile.get_posts():
             if new_count >= settings.POST_LIMIT:
                 break
 
+            # Posts come newest-first; stop as soon as we hit something before today
+            post_ts = post.date_utc.replace(tzinfo=timezone.utc) if post.date_utc else None
+            if post_ts and post_ts < today:
+                logger.debug("@%s: reached posts older than today — stopping.", username)
+                break
+
             permalink = f"https://www.instagram.com/p/{post.shortcode}/"
             if await _permalink_exists(session, permalink):
                 logger.debug("Post %s already in DB — stopping early for @%s.", permalink, username)
-                # Posts are ordered newest-first; once we hit a known post we can stop
                 break
 
             image_url = post.url if post.url else None

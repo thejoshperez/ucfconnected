@@ -9,14 +9,25 @@ from datetime import date, datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from db.database import get_session
-from db.models import Event
+from db.models import Event, Post
 from models.schemas import EventRead
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/events", tags=["events"])
+
+
+def _serialize(events: list[Event]) -> list[EventRead]:
+    out = []
+    for e in events:
+        data = EventRead.model_validate(e)
+        if e.source_post:
+            data.source_post_permalink = e.source_post.permalink
+        out.append(data)
+    return out
 
 
 @router.get("", response_model=list[EventRead], summary="All events")
@@ -31,11 +42,12 @@ async def get_all_events(
     """
     result = await session.execute(
         select(Event)
-        .order_by(Event.created_at.desc())
+        .options(selectinload(Event.source_post))
+        .order_by(Event.confidence.desc(), Event.created_at.desc())
         .offset(skip)
         .limit(limit)
     )
-    return list(result.scalars().all())
+    return _serialize(list(result.scalars().all()))
 
 
 @router.get("/today", response_model=list[EventRead], summary="Events happening today")
@@ -59,9 +71,9 @@ async def get_today_events(
             | Event.date.ilike(f"%{today_str_long}%")
             | Event.date.ilike(f"%{today_iso}%")
             | Event.date.ilike(f"%{today_day}%")
-        ).order_by(Event.created_at.desc())
+        ).options(selectinload(Event.source_post)).order_by(Event.confidence.desc(), Event.created_at.desc())
     )
-    return list(result.scalars().all())
+    return _serialize(list(result.scalars().all()))
 
 
 @router.get("/upcoming", response_model=list[EventRead], summary="Events created in the last 14 days")
@@ -80,10 +92,11 @@ async def get_upcoming_events(
     result = await session.execute(
         select(Event)
         .where(Event.created_at >= cutoff)
-        .order_by(Event.created_at.desc())
+        .options(selectinload(Event.source_post))
+        .order_by(Event.confidence.desc(), Event.created_at.desc())
         .limit(100)
     )
-    return list(result.scalars().all())
+    return _serialize(list(result.scalars().all()))
 
 
 @router.get("/club/{club_name}", response_model=list[EventRead], summary="Events by club")
@@ -97,14 +110,15 @@ async def get_events_by_club(
     result = await session.execute(
         select(Event)
         .where(func.lower(Event.club) == club_name.lower())
-        .order_by(Event.created_at.desc())
+        .options(selectinload(Event.source_post))
+        .order_by(Event.confidence.desc(), Event.created_at.desc())
         .offset(skip)
         .limit(limit)
     )
     events = list(result.scalars().all())
     if not events:
         raise HTTPException(status_code=404, detail=f"No events found for club '{club_name}'")
-    return events
+    return _serialize(events)
 
 
 @router.get("/{event_id}", response_model=EventRead, summary="Single event by ID")
