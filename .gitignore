@@ -1,2 +1,4 @@
 .env.local
+.env.local.example
 backend/.env
+backend/.env.example
