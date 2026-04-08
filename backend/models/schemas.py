@@ -26,6 +26,7 @@ class PostRead(PostBase):
 
 class EventBase(BaseModel):
     club: str
+    rso_name: str | None = None
     title: str
     date: str | None = None
     time: str | None = None
@@ -50,6 +51,17 @@ class ExtractedEventPayload(BaseModel):
     location: str = ""
     description: str = ""
 
+
+class GeminiExtractedEvent(BaseModel):
+    """
+    Structured output schema enforced on every Gemini extraction call.
+    Passed directly as response_schema= to the Gemini API.
+    """
+    event_name: str
+    rso_name: str
+    location: str
+    start_time: str  # ISO 8601 preferred ("2025-03-21T18:00:00"), normalized string fallback
+    is_valid_event: bool
 
 class ClassifierResult(BaseModel):
     post_id: int

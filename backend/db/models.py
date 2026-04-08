@@ -51,6 +51,7 @@ class Event(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     club: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    rso_name: Mapped[str | None] = mapped_column(String(300), nullable=True)
     title: Mapped[str] = mapped_column(String(300), nullable=False)
     date: Mapped[str | None] = mapped_column(String(60), nullable=True)   # human-readable string
     time: Mapped[str | None] = mapped_column(String(60), nullable=True)

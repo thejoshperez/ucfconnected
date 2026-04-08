@@ -28,6 +28,11 @@ class Settings:
     CLASSIFIER_MODEL: str = os.getenv("CLASSIFIER_MODEL", "phi3")
     EXTRACTOR_MODEL: str = os.getenv("EXTRACTOR_MODEL", "mistral")
 
+    # ── Gemini ────────────────────────────────────────────────────────────
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+    GEMINI_MAX_RETRIES: int = int(os.getenv("GEMINI_MAX_RETRIES", "3"))
+    GEMINI_RETRY_DELAY: float = float(os.getenv("GEMINI_RETRY_DELAY", "2.0"))
     # ── Instagram ─────────────────────────────────────────────────────────
     INSTAGRAM_USERNAME: str = os.getenv("INSTAGRAM_USERNAME", "")
     INSTAGRAM_PASSWORD: str = os.getenv("INSTAGRAM_PASSWORD", "")
