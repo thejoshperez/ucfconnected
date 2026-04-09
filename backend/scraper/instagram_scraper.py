@@ -158,11 +158,106 @@ async def scrape_account(loader: instaloader.Instaloader, username: str) -> int:
     return new_count
 
 
-async def run_scraper() -> None:
-    """Entry-point: initialise DB then scrape all configured accounts."""
-    await init_db()
+async def run_scraper() -> int:
+    """Scrape all configured accounts. Returns total new post count."""
     loader = _build_loader()
     total = 0
     for username in settings.CLUB_ACCOUNTS:
         total += await scrape_account(loader, username)
     logger.info("Scrape complete. %d total new posts.", total)
+    return total
+
+
+async def run_scraper_apify() -> int:
+    """
+    Apify-based failover for Instagram scraping.
+
+    Called ONLY when the primary Instaloader path fails or returns zero
+    results. Uses the Apify "apify/instagram-post-scraper" actor via
+    the apify-client SDK.
+
+    Returns the total number of new posts saved.
+    """
+    token = settings.APIFY_API_TOKEN
+    if not token:
+        logger.error(
+            "APIFY_API_TOKEN is not set — cannot run Apify failover. "
+            "Add it to .env to enable this fallback."
+        )
+        return 0
+
+    from apify_client import ApifyClient
+
+    logger.info("Starting Apify Instagram failover for %d accounts …", len(settings.CLUB_ACCOUNTS))
+    client = ApifyClient(token)
+
+    total = 0
+    for username in settings.CLUB_ACCOUNTS:
+        logger.info("Apify: scraping @%s …", username)
+        run_input = {
+            "usernames": [username],
+            "resultsLimit": settings.POST_LIMIT,
+            "resultsType": "posts",
+        }
+
+        try:
+            run = client.actor("apify/instagram-post-scraper").call(run_input=run_input)
+        except Exception as exc:
+            logger.error("Apify actor call failed for @%s: %s", username, exc)
+            continue
+
+        dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
+        logger.info("Apify returned %d items for @%s.", len(dataset_items), username)
+
+        async with AsyncSessionLocal() as session:
+            new_count = 0
+            for item in dataset_items:
+                permalink = item.get("url") or item.get("shortCode", "")
+                if permalink and not permalink.startswith("http"):
+                    permalink = f"https://www.instagram.com/p/{permalink}/"
+
+                if not permalink:
+                    continue
+
+                if await _permalink_exists(session, permalink):
+                    continue
+
+                caption = item.get("caption") or ""
+                image_url = item.get("displayUrl") or item.get("imageUrl")
+                ts_raw = item.get("timestamp")
+                ts = None
+                if ts_raw:
+                    try:
+                        ts = datetime.fromisoformat(ts_raw).replace(tzinfo=timezone.utc)
+                    except (ValueError, TypeError):
+                        ts = datetime.now(timezone.utc)
+
+                db_post = Post(
+                    club_username=username,
+                    caption=caption,
+                    timestamp=ts,
+                    image_url=image_url,
+                    permalink=permalink,
+                    processed=False,
+                )
+                session.add(db_post)
+                await session.flush()
+
+                await enqueue(
+                    settings.RAW_POSTS_QUEUE,
+                    {
+                        "post_id": db_post.id,
+                        "club_username": username,
+                        "caption": caption,
+                        "image_url": image_url,
+                        "permalink": permalink,
+                    },
+                )
+                new_count += 1
+
+            await session.commit()
+            logger.info("Apify @%s: %d new post(s) saved.", username, new_count)
+            total += new_count
+
+    logger.info("Apify failover complete. %d total new posts.", total)
+    return total

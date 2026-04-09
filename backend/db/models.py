@@ -69,3 +69,39 @@ class Event(Base):
 
     def __repr__(self) -> str:
         return f"<Event id={self.id} title={self.title!r} club={self.club!r}>"
+
+
+class Squad(Base):
+    __tablename__ = "squads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    invite_code: Mapped[str] = mapped_column(String(6), unique=True, index=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    members: Mapped[list[SquadMember]] = relationship(
+        "SquadMember", back_populates="squad", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Squad id={self.id} name={self.name!r} code={self.invite_code!r}>"
+
+
+class SquadMember(Base):
+    __tablename__ = "squad_members"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    squad_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("squads.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    member_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    joined_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    squad: Mapped[Squad] = relationship("Squad", back_populates="members")
+
+    def __repr__(self) -> str:
+        return f"<SquadMember id={self.id} name={self.member_name!r} squad_id={self.squad_id}>"

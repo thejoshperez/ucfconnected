@@ -50,6 +50,9 @@ class Settings:
     # How many posts to fetch per account per run
     POST_LIMIT: int = int(os.getenv("POST_LIMIT", "20"))
 
+    # ── Apify failover ────────────────────────────────────────────────────
+    APIFY_API_TOKEN: str = os.getenv("APIFY_API_TOKEN", "")
+
     # ── Image / OCR ───────────────────────────────────────────────────────
     IMAGE_DOWNLOAD_DIR: str = os.getenv("IMAGE_DOWNLOAD_DIR", "/tmp/knightlife_images")
     TESSERACT_CMD: str = os.getenv("TESSERACT_CMD", "tesseract")
@@ -69,6 +72,9 @@ class Settings:
 
     # ── LLM confidence threshold ──────────────────────────────────────────
     MIN_CONFIDENCE: float = float(os.getenv("MIN_CONFIDENCE", "0.6"))
+
+    # ── Admin override ────────────────────────────────────────────────────
+    ADMIN_SECRET_KEY: str = os.getenv("ADMIN_SECRET_KEY", "")
 
 
 @lru_cache(maxsize=1)

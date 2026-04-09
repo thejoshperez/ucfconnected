@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import './EventCard.css'
 
 function confidenceClass(confidence) {
@@ -12,6 +13,7 @@ function confidenceLabel(confidence) {
 
 export default function EventCard({ event }) {
   const {
+    id,
     title,
     club,
     date,
@@ -21,6 +23,39 @@ export default function EventCard({ event }) {
     confidence,
     source_post_permalink,
   } = event
+
+  const [copied, setCopied] = useState(false)
+
+  const eventUrl = `${window.location.origin}/events/${id}`
+
+  async function handleShare() {
+    // Mobile / PWA: use native share sheet
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: 'Check out this event on KnightLife!',
+          url: eventUrl,
+        })
+      } catch (err) {
+        // User cancelled the share sheet — not an error
+        if (err.name !== 'AbortError') {
+          console.error('Share failed:', err)
+        }
+      }
+      return
+    }
+
+    // Desktop fallback: copy link to clipboard
+    try {
+      await navigator.clipboard.writeText(eventUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API unavailable (e.g. insecure context)
+      window.prompt('Copy this link:', eventUrl)
+    }
+  }
 
   return (
     <article className="event-card">
@@ -67,16 +102,25 @@ export default function EventCard({ event }) {
           <span className="event-card__confidence-dot" aria-hidden />
           {confidenceLabel(confidence)}
         </span>
-        {source_post_permalink && (
-          <a
-            href={source_post_permalink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="event-card__source"
+        <div className="event-card__actions">
+          <button
+            className="event-card__share"
+            onClick={handleShare}
+            aria-label="Share this event"
           >
-            View post ↗
-          </a>
-        )}
+            {copied ? 'Copied!' : 'Share ↗'}
+          </button>
+          {source_post_permalink && (
+            <a
+              href={source_post_permalink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="event-card__source"
+            >
+              View post ↗
+            </a>
+          )}
+        </div>
       </div>
     </article>
   )

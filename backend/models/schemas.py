@@ -77,3 +77,43 @@ class QueuedPost(BaseModel):
     caption: str | None = None
     image_url: str | None = None
     permalink: str | None = None
+
+
+# ── Squad (Phase 3: Viral Mechanics) ─────────────────────────────────────────
+
+class SquadCreate(BaseModel):
+    name: str
+
+
+class SquadMemberCreate(BaseModel):
+    member_name: str
+
+
+class SquadMemberRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    member_name: str
+    joined_at: datetime
+
+
+class SquadResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    invite_code: str
+    created_at: datetime
+    members: list[SquadMemberRead] = []
+
+
+class EventCreateManual(BaseModel):
+    """Payload for the admin manual-inject endpoint."""
+    title: str
+    club: str
+    rso_name: str | None = None
+    date: str | None = None
+    time: str | None = None
+    location: str | None = None
+    description: str | None = None
+    image_url: str | None = None

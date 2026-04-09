@@ -19,3 +19,7 @@ dist/
 
 # macOS
 .DS_Store
+
+# Docker
+*.tar
+docker-compose.override.yml

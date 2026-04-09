@@ -148,3 +148,30 @@
 .event-card__source:hover {
   color: var(--ucf-black);
 }
+
+/* ── Share button + action group ────────────────────────────────────── */
+.event-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.event-card__share {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--bg-card);
+  background: var(--ucf-black);
+  border-radius: var(--radius-full);
+  padding: 4px var(--space-md);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.event-card__share:hover {
+  background: var(--ucf-gold-dim);
+  color: var(--ucf-black);
+  transform: translateY(-1px);
+}
+
+.event-card__share:active {
+  transform: translateY(0);
+}

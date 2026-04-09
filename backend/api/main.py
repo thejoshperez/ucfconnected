@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import events as events_router
+from api.routes import squads as squads_router
 from config.settings import get_settings
 from db.database import init_db
 
@@ -56,12 +57,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(events_router.router)
+app.include_router(squads_router.router)
 
 
 @app.get("/health", tags=["meta"])
@@ -74,5 +76,8 @@ async def root() -> dict:
     return {
         "message": "KnightLife Events API",
         "docs": "/docs",
-        "endpoints": ["/events", "/events/today", "/events/upcoming", "/events/club/{club_name}"],
+        "endpoints": [
+            "/events", "/events/today", "/events/upcoming", "/events/club/{club_name}",
+            "/squads", "/squads/{invite_code}", "/squads/{invite_code}/join",
+        ],
     }

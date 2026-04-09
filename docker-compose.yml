@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# KnightLife — local development / staging stack
+#
+# Usage:
+#   docker compose up -d          # start all services
+#   docker compose logs -f api    # tail API logs
+#   docker compose down -v        # stop and remove volumes
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: knightlife
+      POSTGRES_PASSWORD: knightlife
+      POSTGRES_DB: knightlife
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knightlife -d knightlife"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── FastAPI backend ────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      # These override any values in .env, pointing at Docker service names
+      # instead of localhost — this is what makes the container network work.
+      DATABASE_URL: postgresql+asyncpg://knightlife:knightlife@db:5432/knightlife
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+volumes:
+  pgdata:
+  redisdata:

@@ -6,14 +6,15 @@ from __future__ import annotations
 import logging
 from datetime import date, datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from config.settings import get_settings
 from db.database import get_session
 from db.models import Event, Post
-from models.schemas import EventRead
+from models.schemas import EventCreateManual, EventRead
 
 logger = logging.getLogger(__name__)
 
@@ -119,6 +120,57 @@ async def get_events_by_club(
     if not events:
         raise HTTPException(status_code=404, detail=f"No events found for club '{club_name}'")
     return _serialize(events)
+
+
+# ── Admin: manual event injection ────────────────────────────────────────────
+
+@router.post(
+    "/admin/inject",
+    response_model=EventRead,
+    status_code=201,
+    summary="Inject a featured event (admin only)",
+    tags=["admin"],
+)
+async def inject_event(
+    body: EventCreateManual,
+    x_admin_key: str = Header(..., description="Admin secret key"),
+    session: AsyncSession = Depends(get_session),
+) -> Event:
+    """
+    Manually insert an event directly into the database, bypassing the
+    scraping pipeline. Requires a valid admin key in the x-admin-key header.
+
+    Injected events are created with confidence=1.0 so they sort to the
+    top of the feed (the frontend orders by confidence DESC).
+    """
+    settings = get_settings()
+
+    if not settings.ADMIN_SECRET_KEY:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin injection is disabled (ADMIN_SECRET_KEY not configured).",
+        )
+
+    if x_admin_key != settings.ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Invalid admin key.")
+
+    event = Event(
+        club=body.club.strip(),
+        rso_name=body.rso_name.strip() if body.rso_name else None,
+        title=body.title.strip(),
+        date=body.date,
+        time=body.time,
+        location=body.location,
+        description=body.description,
+        confidence=1.0,
+        source_post_id=None,
+    )
+    session.add(event)
+    await session.commit()
+    await session.refresh(event)
+
+    logger.info("Admin injected event id=%d: %r", event.id, event.title)
+    return _serialize([event])[0]
 
 
 @router.get("/{event_id}", response_model=EventRead, summary="Single event by ID")
