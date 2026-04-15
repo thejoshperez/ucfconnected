@@ -105,3 +105,39 @@ class SquadMember(Base):
 
     def __repr__(self) -> str:
         return f"<SquadMember id={self.id} name={self.member_name!r} squad_id={self.squad_id}>"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    username: Mapped[str] = mapped_column(String(60), nullable=False, unique=True, index=True)
+    password_hash: Mapped[str] = mapped_column(String(72), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    follows: Mapped[list[Follow]] = relationship(
+        "Follow", back_populates="user", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"<User id={self.id} username={self.username!r}>"
+
+
+class Follow(Base):
+    __tablename__ = "follows"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    club_username: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+    user: Mapped[User] = relationship("User", back_populates="follows")
+
+    def __repr__(self) -> str:
+        return f"<Follow id={self.id} user_id={self.user_id} club={self.club_username!r}>"

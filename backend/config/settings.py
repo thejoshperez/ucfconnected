@@ -76,6 +76,11 @@ class Settings:
     # ── Admin override ────────────────────────────────────────────────────
     ADMIN_SECRET_KEY: str = os.getenv("ADMIN_SECRET_KEY", "")
 
+    # ── Auth / JWT ────────────────────────────────────────────────────────
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "change-me-in-production")
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_HOURS: int = int(os.getenv("JWT_EXPIRE_HOURS", "24"))
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

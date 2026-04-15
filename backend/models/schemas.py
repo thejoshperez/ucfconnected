@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class PostBase(BaseModel):
@@ -117,3 +117,46 @@ class EventCreateManual(BaseModel):
     location: str | None = None
     description: str | None = None
     image_url: str | None = None
+
+
+# ── Auth (Phase 4: JWT + Follow) ──────────────────────────────────────────────
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+    @field_validator("username")
+    @classmethod
+    def username_valid(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 3:
+            raise ValueError("Username must be at least 3 characters")
+        if len(v) > 30:
+            raise ValueError("Username must be 30 characters or fewer")
+        if not v.replace("_", "").replace("-", "").isalnum():
+            raise ValueError("Username may only contain letters, numbers, hyphens, and underscores")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_valid(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters")
+        return v
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    username: str
+
+
+class FollowResponse(BaseModel):
+    status: str  # "followed" | "already_following"
+    club_username: str
+    username: str

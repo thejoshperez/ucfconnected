@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routes import events as events_router
+from api.routes import auth as auth_router
 from api.routes import squads as squads_router
 from config.settings import get_settings
 from db.database import init_db
@@ -64,6 +65,7 @@ app.add_middleware(
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(events_router.router)
 app.include_router(squads_router.router)
+app.include_router(auth_router.router)
 
 
 @app.get("/health", tags=["meta"])
@@ -79,5 +81,6 @@ async def root() -> dict:
         "endpoints": [
             "/events", "/events/today", "/events/upcoming", "/events/club/{club_name}",
             "/squads", "/squads/{invite_code}", "/squads/{invite_code}/join",
+            "/auth/register", "/auth/login", "/auth/follow/{club_username}", "/auth/follows",
         ],
     }

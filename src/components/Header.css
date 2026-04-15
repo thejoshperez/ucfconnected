@@ -78,3 +78,116 @@
     display: none;
   }
 }
+
+/* ── Auth nav area ─────────────────────────────────────────────────── */
+.nav__auth {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.nav__username {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.nav__link--logout {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: var(--space-xs) var(--space-md);
+}
+
+.nav__link--logout:hover {
+  border-color: rgba(255, 201, 4, 0.5);
+  color: var(--ucf-black);
+}
+
+/* ── Auth dropdown panel ────────────────────────────────────────────── */
+.auth-panel {
+  position: absolute;
+  top: calc(100% + var(--space-sm));
+  right: 0;
+  width: 260px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.10);
+  z-index: 200;
+}
+
+.auth-panel__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ucf-black);
+}
+
+.auth-panel__error {
+  font-size: 0.8rem;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.auth-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.auth-panel__input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.9rem;
+  font-family: var(--font-sans);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--ucf-black);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.auth-panel__input:focus {
+  border-color: var(--ucf-gold);
+}
+
+.auth-panel__submit {
+  width: 100%;
+  padding: var(--space-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ucf-black);
+  background: var(--ucf-gold);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.auth-panel__submit:hover:not(:disabled) {
+  background: var(--ucf-gold-dim);
+}
+
+.auth-panel__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-panel__toggle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  transition: color var(--transition-fast);
+}
+
+.auth-panel__toggle:hover {
+  color: var(--ucf-black);
+}
