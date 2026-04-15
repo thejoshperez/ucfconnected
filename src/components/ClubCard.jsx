@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './ClubCard.css'
 
@@ -89,6 +90,16 @@ export default function ClubCard({ club }) {
           </span>
           @{club.instagram}
         </a>
+      )}
+
+      {isExpanded && club.instagram && (
+        <Link
+          to={`/events/club/${club.instagram}`}
+          className="club-card__events-link"
+          onClick={(e) => e.stopPropagation()}
+        >
+          📅 See {club.name} events &rarr;
+        </Link>
       )}
 
       <div className="club-card__footer">

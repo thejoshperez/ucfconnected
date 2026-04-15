@@ -28,8 +28,13 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showAuthPanel])
 
-  const navLink = (to) =>
-    `nav__link${pathname === to ? ' nav__link--active' : ''}`
+  // active: exact for '/', prefix for others
+  const navLink = (to) => {
+    const isActive = to === '/' 
+      ? pathname === '/' 
+      : (pathname === to || pathname.startsWith(to + '/'));
+    return `nav__link${isActive ? ' nav__link--active' : ''}`;
+  }
 
   function openAuth() {
     setError('')
@@ -68,6 +73,9 @@ export default function Header() {
         <nav className="nav">
           <Link to="/" className={navLink('/')}>Explore</Link>
           <Link to="/events" className={navLink('/events')}>Events</Link>
+          {username && (
+            <Link to="/feed" className={navLink('/feed')}>My Feed</Link>
+          )}
           <Link to="/about" className={navLink('/about')}>About</Link>
 
           {/* ── Auth area ── */}

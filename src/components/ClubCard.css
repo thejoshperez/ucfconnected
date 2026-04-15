@@ -188,3 +188,32 @@
   cursor: not-allowed;
   transform: none;
 }
+
+/* ── See Events link ────────────────────────────────────────────────── */
+.club-card__events-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bg-card);
+  background: var(--ucf-black);
+  border-radius: var(--radius-full);
+  padding: var(--space-xs) var(--space-sm);
+  text-decoration: none;
+  width: fit-content;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.club-card__events-link:hover {
+  background: var(--ucf-gold-dim);
+  color: var(--ucf-black);
+  transform: translateY(-1px);
+}
+
+.club-card__events-link:active {
+  transform: translateY(0);
+}

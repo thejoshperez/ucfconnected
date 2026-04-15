@@ -12,7 +12,6 @@ export default function Footer() {
         <div className="footer__links">
           <Link to="/">Explore clubs</Link>
           <Link to="/about">About</Link>
-          <a href="#contact">Contact</a>
         </div>
         <p className="footer__ucf">University of Central Florida</p>
       </div>
