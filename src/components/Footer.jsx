@@ -6,11 +6,12 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer__inner">
         <div className="footer__brand">
-          <span className="footer__logo">Knight Life</span>
+          <span className="footer__logo">KnightLife</span>
           <p className="footer__tagline">Connect to clubs. Add to calendar. Show up.</p>
         </div>
         <div className="footer__links">
-          <Link to="/">Explore clubs</Link>
+          <Link to="/">Clubs</Link>
+          <Link to="/events">Events</Link>
           <Link to="/about">About</Link>
         </div>
         <p className="footer__ucf">University of Central Florida</p>

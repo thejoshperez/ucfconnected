@@ -208,6 +208,98 @@
   font-size: 1rem;
 }
 
+/* ── Skeleton loading cards ─────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.event-card-skeleton {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.event-card-skeleton__shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg) 25%,
+    rgba(0, 0, 0, 0.06) 50%,
+    var(--bg) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+.event-card-skeleton__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.event-card-skeleton__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.event-card-skeleton__date {
+  width: 84px;
+  height: 32px;
+  border-radius: var(--radius-md);
+}
+
+.event-card-skeleton__badge {
+  width: 72px;
+  height: 20px;
+  border-radius: var(--radius-full);
+}
+
+.event-card-skeleton__title {
+  height: 22px;
+  width: 85%;
+}
+
+.event-card-skeleton__line {
+  height: 13px;
+  width: 100%;
+}
+
+.event-card-skeleton__line--short {
+  width: 50%;
+}
+
+.event-card-skeleton__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--border);
+}
+
+.event-card-skeleton__pill {
+  width: 64px;
+  height: 20px;
+  border-radius: var(--radius-full);
+}
+
+.event-card-skeleton__btn {
+  width: 68px;
+  height: 24px;
+  border-radius: var(--radius-full);
+}
+
+.event-card-skeleton__actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .events-page__hero {
@@ -226,4 +318,104 @@
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+/* ── Club detail metadata ── */
+.club-detail__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  justify-content: center;
+}
+
+.club-detail__tag {
+  font-size: 0.75rem;
+  background: var(--bg);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-sm);
+}
+
+.club-detail__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  justify-content: center;
+}
+
+.club-detail__meta-item {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.club-detail__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.club-detail__instagram {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ucf-black);
+  background: rgba(255, 201, 4, 0.18);
+  border: 1px solid rgba(255, 201, 4, 0.4);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  text-decoration: none;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.club-detail__instagram:hover {
+  background: rgba(255, 201, 4, 0.32);
+  border-color: var(--ucf-gold);
+  transform: translateY(-1px);
+}
+
+.club-detail__follow {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ucf-black);
+  background: var(--ucf-gold);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.club-detail__follow:hover:not(:disabled) {
+  background: var(--ucf-gold-dim);
+  transform: translateY(-1px);
+}
+
+.club-detail__follow:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.club-detail__follow--done {
+  background: rgba(34, 197, 94, 0.15);
+  color: #15803d;
+}
+
+.club-detail__follow:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
 }

@@ -10,6 +10,8 @@ import EventDetail from './pages/EventDetail'
 import ClubEvents from './pages/ClubEvents'
 import NotFound from './pages/NotFound'
 import MyFeed from './pages/MyFeed'
+import SquadsLanding from './pages/SquadsLanding'
+import SquadPage from './pages/SquadPage'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -32,6 +34,8 @@ function App() {
           <Route path="/events/:id" element={<EventDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/feed" element={<MyFeed />} />
+          <Route path="/squads" element={<SquadsLanding />} />
+          <Route path="/squads/:code" element={<SquadPage />} />
           <Route 
             path="/admin-override" 
             element={

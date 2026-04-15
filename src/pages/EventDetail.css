@@ -79,6 +79,19 @@
   flex-wrap: wrap;
 }
 
+.event-detail__loading-state {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3xl) 0;
+}
+
+.event-detail__error-msg {
+  margin-top: var(--space-xl);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 @media (max-width: 480px) {
   .event-detail__hero {
     flex-direction: column;

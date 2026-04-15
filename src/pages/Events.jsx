@@ -54,14 +54,13 @@ export default function Events() {
       <div className="events-page__hero">
         <div className="events-page__hero-bg" aria-hidden />
         <div className="events-page__hero-inner">
-          <p className="events-page__badge">Live from Instagram</p>
+          <p className="events-page__badge">UCF Campus Events</p>
           <h1 className="events-page__title">
             Campus events,<br />
-            <span className="events-page__title-accent">auto-detected.</span>
+            <span className="events-page__title-accent">all in one place.</span>
           </h1>
           <p className="events-page__subtitle">
-            Club meetings and events scraped from Instagram, extracted by AI,
-            and served fresh every 6 hours.
+            Club meetings and events from UCF Instagram accounts, extracted by AI.
           </p>
 
           {/* Search */}
@@ -84,7 +83,7 @@ export default function Events() {
         <div className="events-page__inner">
           <div className="events-page__head">
             <h2 className="events-page__section-title">
-              {loading ? 'Loading…' : `${filtered.length} event${filtered.length !== 1 ? 's' : ''}`}
+              {loading ? 'Events' : `${filtered.length} event${filtered.length !== 1 ? 's' : ''}`}
             </h2>
 
             <div className="events-page__filters" role="tablist" aria-label="Filter events">
@@ -105,9 +104,26 @@ export default function Events() {
 
           {/* States */}
           {loading && (
-            <div className="events-page__state">
-              <div className="events-page__spinner" aria-label="Loading events" />
-              <p>Fetching events…</p>
+            <div className="events-grid" aria-busy="true">
+              {Array.from({ length: 6 }, (_, i) => (
+                <div key={i} className="event-card-skeleton" aria-hidden="true">
+                  <div className="event-card-skeleton__header">
+                    <div className="event-card-skeleton__shimmer event-card-skeleton__icon" />
+                    <div className="event-card-skeleton__shimmer event-card-skeleton__date" />
+                  </div>
+                  <div className="event-card-skeleton__shimmer event-card-skeleton__badge" />
+                  <div className="event-card-skeleton__shimmer event-card-skeleton__title" />
+                  <div className="event-card-skeleton__shimmer event-card-skeleton__line" />
+                  <div className="event-card-skeleton__shimmer event-card-skeleton__line event-card-skeleton__line--short" />
+                  <div className="event-card-skeleton__footer">
+                    <div className="event-card-skeleton__shimmer event-card-skeleton__pill" />
+                    <div className="event-card-skeleton__actions">
+                      <div className="event-card-skeleton__shimmer event-card-skeleton__btn" />
+                      <div className="event-card-skeleton__shimmer event-card-skeleton__btn" />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -126,8 +142,8 @@ export default function Events() {
               {search
                 ? 'No events match your search.'
                 : filter === 'today'
-                  ? 'No events detected for today. Check back later!'
-                  : 'No events found. The scraper may still be running.'}
+                  ? 'No events found for today. Check back later!'
+                  : 'No events found yet. Check back soon.'}
             </p>
           )}
 

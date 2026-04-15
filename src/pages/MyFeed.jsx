@@ -55,21 +55,6 @@ export default function MyFeed() {
   const followSet = new Set(follows ? follows.map(f => f.toLowerCase()) : [])
   const feedEvents = allEvents.filter(e => e.club && followSet.has(e.club.toLowerCase()))
 
-  const retryButtonStyle = {
-    marginTop: '1rem', 
-    padding: '0.5rem 1.5rem', 
-    background: 'var(--ucf-black)', 
-    color: 'var(--ucf-gold)', 
-    border: 'none', 
-    borderRadius: 'var(--radius-full)', 
-    cursor: 'pointer', 
-    fontFamily: 'inherit', 
-    fontSize: '0.9rem', 
-    fontWeight: 600,
-    display: 'inline-block',
-    textDecoration: 'none'
-  }
-
   // State 1 — Unauthenticated
   if (!token) {
     return (
@@ -84,7 +69,7 @@ export default function MyFeed() {
             <p className="events-page__subtitle">
               Sign in with the button in the top right to see events from clubs you follow.
             </p>
-            <Link to="/events" className="events-page__retry" style={retryButtonStyle}>Browse all events →</Link>
+            <Link to="/events" className="events-page__retry">Browse all events →</Link>
           </div>
         </div>
       </div>
@@ -95,9 +80,22 @@ export default function MyFeed() {
   if (loading) {
     return (
       <div className="events-page">
-        <div className="events-page__state" style={{ marginTop: '6rem' }}>
-          <div className="events-page__spinner" aria-label="Loading your feed" />
-          <p>Loading your feed…</p>
+        <div className="events-page__hero">
+          <div className="events-page__hero-bg" aria-hidden />
+          <div className="events-page__hero-inner">
+            <p className="events-page__badge">Personalized</p>
+            <h1 className="events-page__title">My Feed</h1>
+            <p className="events-page__subtitle">
+              Loading events for @{username}…
+            </p>
+          </div>
+        </div>
+        <div className="events-page__body">
+          <div className="events-page__inner">
+            <div className="events-page__state">
+              <div className="events-page__spinner" aria-label="Loading your feed" />
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -107,10 +105,23 @@ export default function MyFeed() {
   if (error !== null) {
     return (
       <div className="events-page">
-        <div className="events-page__state events-page__state--error" style={{ marginTop: '6rem' }}>
-          <p>Could not load your feed.</p>
-          <p className="events-page__error-detail">{error}</p>
-          <button type="button" className="events-page__retry" style={retryButtonStyle} onClick={loadFeed}>Retry</button>
+        <div className="events-page__hero">
+          <div className="events-page__hero-bg" aria-hidden />
+          <div className="events-page__hero-inner">
+            <p className="events-page__badge">Personalized</p>
+            <h1 className="events-page__title">My Feed</h1>
+          </div>
+        </div>
+        <div className="events-page__body">
+          <div className="events-page__inner">
+            <div className="events-page__state events-page__state--error">
+              <p>Could not load your feed.</p>
+              <p className="events-page__error-detail">{error}</p>
+              <button type="button" className="events-page__retry" onClick={loadFeed}>
+                Retry
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -162,7 +173,7 @@ export default function MyFeed() {
             </h2>
           </div>
           {feedEvents.length === 0
-            ? <p className="events-page__empty">No events found from your followed clubs. Check back after the next scrape.</p>
+            ? <p className="events-page__empty">No events found from your followed clubs. Check back soon.</p>
             : <div className="events-grid">{feedEvents.map(e => <EventCard key={e.id} event={e} />)}</div>
           }
         </div>

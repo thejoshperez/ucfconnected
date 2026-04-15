@@ -12,7 +12,7 @@ export default function Hero({ searchValue, onSearchChange }) {
           <span className="hero__title-accent">Never miss a meeting.</span>
         </h1>
         <p className="hero__subtitle">
-          Discover clubs, add meetings to your calendar, and stay connected with Knight Life.
+          Discover UCF clubs, follow the ones you love, and add their events to your calendar.
         </p>
         <div className="hero__search-wrap">
           <span className="hero__search-icon" aria-hidden>⌕</span>

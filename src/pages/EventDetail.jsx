@@ -77,15 +77,20 @@ export default function EventDetail() {
   const { id } = useParams()
   const [event, setEvent] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState(null)   // null | error message string
+  const [notFound, setNotFound] = useState(false)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     async function fetchEvent() {
       try {
         const res = await fetch(`${API_BASE}/events/${id}`)
+        if (res.status === 404) {
+          setNotFound(true)
+          return
+        }
         if (!res.ok) {
-          throw new Error('Event not found')
+          throw new Error(`Could not load event (${res.status})`)
         }
         const data = await res.json()
         setEvent(data)
@@ -112,7 +117,7 @@ export default function EventDetail() {
         }
 
       } catch (err) {
-        setError(true)
+        setError(err.message)
       } finally {
         setLoading(false)
       }
@@ -168,15 +173,28 @@ export default function EventDetail() {
 
   if (loading) {
     return (
-      <div className="events-page__state" style={{ marginTop: '4rem' }}>
-        <div className="events-page__spinner" aria-label="Loading event"></div>
-        <p>Loading event…</p>
+      <div className="event-detail">
+        <Link to="/events" className="event-detail__back">← Back to Events</Link>
+        <div className="event-detail__loading-state">
+          <div className="events-page__spinner" aria-label="Loading event" />
+        </div>
       </div>
     )
   }
 
-  if (error || !event) {
+  if (notFound) {
     return <NotFound />
+  }
+
+  if (error || !event) {
+    return (
+      <div className="event-detail">
+        <Link to="/events" className="event-detail__back">← Back to Events</Link>
+        <p className="event-detail__error-msg">
+          Could not load this event — the API may be unavailable.
+        </p>
+      </div>
+    )
   }
 
   const { title, club, date, time, location, description, confidence, source_post_permalink } = event

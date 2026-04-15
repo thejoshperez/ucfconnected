@@ -73,6 +73,7 @@ export default function Header() {
         <nav className="nav">
           <Link to="/" className={navLink('/')}>Explore</Link>
           <Link to="/events" className={navLink('/events')}>Events</Link>
+          <Link to="/squads" className={navLink('/squads')}>Squads</Link>
           {username && (
             <Link to="/feed" className={navLink('/feed')}>My Feed</Link>
           )}
