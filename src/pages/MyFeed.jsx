@@ -1,61 +1,20 @@
-import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { useFollowedEventsFeed } from '../features/events/hooks'
 import EventCard from '../components/EventCard'
 import '../pages/Events.css'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
 export default function MyFeed() {
   const { token, username } = useAuth()
-  const [follows, setFollows] = useState(null)
-  const [allEvents, setAllEvents] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { follows, events: allEvents, loading, error, reload } = useFollowedEventsFeed(token)
 
-  const loadFeed = useCallback(async () => {
-    if (!token) {
-      setLoading(false)
-      return
-    }
+  const followSet = new Set(follows ? follows.map((follow) => follow.toLowerCase()) : [])
+  const followedClubEvents = allEvents.filter((event) => event.club && followSet.has(event.club.toLowerCase()))
+  const followedEventIds = new Set(followedClubEvents.map((event) => event.id))
+  const squadActivityEvents = allEvents.filter(
+    (event) => event.squad_members_going?.length > 0 && !followedEventIds.has(event.id)
+  )
 
-    setLoading(true)
-    setError(null)
-
-    try {
-      const [followsRes, eventsRes] = await Promise.all([
-        fetch(`${API_BASE}/auth/follows`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch(`${API_BASE}/events?limit=200`)
-      ])
-
-      if (!followsRes.ok || !eventsRes.ok) {
-        throw new Error('Could not load your feed')
-      }
-
-      const [followsData, eventsData] = await Promise.all([
-        followsRes.json(),
-        eventsRes.json()
-      ])
-
-      setFollows(followsData)
-      setAllEvents(eventsData)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [token])
-
-  useEffect(() => {
-    loadFeed()
-  }, [loadFeed])
-
-  const followSet = new Set(follows ? follows.map(f => f.toLowerCase()) : [])
-  const feedEvents = allEvents.filter(e => e.club && followSet.has(e.club.toLowerCase()))
-
-  // State 1 — Unauthenticated
   if (!token) {
     return (
       <div className="events-page">
@@ -63,9 +22,7 @@ export default function MyFeed() {
           <div className="events-page__hero-bg" aria-hidden />
           <div className="events-page__hero-inner">
             <p className="events-page__badge">Personalized</p>
-            <h1 className="events-page__title">
-              Your Feed
-            </h1>
+            <h1 className="events-page__title">Your Feed</h1>
             <p className="events-page__subtitle">
               Sign in with the button in the top right to see events from clubs you follow.
             </p>
@@ -76,7 +33,6 @@ export default function MyFeed() {
     )
   }
 
-  // State 2 — Loading
   if (loading) {
     return (
       <div className="events-page">
@@ -86,7 +42,7 @@ export default function MyFeed() {
             <p className="events-page__badge">Personalized</p>
             <h1 className="events-page__title">My Feed</h1>
             <p className="events-page__subtitle">
-              Loading events for @{username}…
+              Loading events for @{username}...
             </p>
           </div>
         </div>
@@ -101,7 +57,6 @@ export default function MyFeed() {
     )
   }
 
-  // State 3 — Error
   if (error !== null) {
     return (
       <div className="events-page">
@@ -117,7 +72,7 @@ export default function MyFeed() {
             <div className="events-page__state events-page__state--error">
               <p>Could not load your feed.</p>
               <p className="events-page__error-detail">{error}</p>
-              <button type="button" className="events-page__retry" onClick={loadFeed}>
+              <button type="button" className="events-page__retry" onClick={reload}>
                 Retry
               </button>
             </div>
@@ -132,17 +87,14 @@ export default function MyFeed() {
       <div className="events-page__hero-bg" aria-hidden />
       <div className="events-page__hero-inner">
         <p className="events-page__badge">Personalized</p>
-        <h1 className="events-page__title">
-          My Feed
-        </h1>
+        <h1 className="events-page__title">My Feed</h1>
         <p className="events-page__subtitle">
-          Events from clubs you follow, @{username}.
+          Events from clubs you follow and activity from your squad, @{username}.
         </p>
       </div>
     </div>
   )
 
-  // State 4 — Zero follows
   if (follows !== null && follows.length === 0) {
     return (
       <div className="events-page">
@@ -150,7 +102,7 @@ export default function MyFeed() {
         <div className="events-page__body">
           <div className="events-page__inner">
             <p className="events-page__empty">
-              You're not following any clubs yet.{' '}
+              You&apos;re not following any clubs yet.{' '}
               <Link to="/" style={{ color: 'var(--ucf-gold-dim)', fontWeight: 600 }}>
                 Browse clubs to follow some →
               </Link>
@@ -161,7 +113,6 @@ export default function MyFeed() {
     )
   }
 
-  // State 5 + 6 — Populated feed / Empty feed
   return (
     <div className="events-page">
       {heroSection}
@@ -169,13 +120,27 @@ export default function MyFeed() {
         <div className="events-page__inner">
           <div className="events-page__head">
             <h2 className="events-page__section-title">
-              {feedEvents.length} event{feedEvents.length !== 1 ? 's' : ''} from {follows.length} followed club{follows.length !== 1 ? 's' : ''}
+              {followedClubEvents.length} event{followedClubEvents.length !== 1 ? 's' : ''} from {follows.length} followed club{follows.length !== 1 ? 's' : ''}
             </h2>
           </div>
-          {feedEvents.length === 0
-            ? <p className="events-page__empty">No events found from your followed clubs. Check back soon.</p>
-            : <div className="events-grid">{feedEvents.map(e => <EventCard key={e.id} event={e} />)}</div>
-          }
+          {followedClubEvents.length === 0 ? (
+            <p className="events-page__empty">No events found from your followed clubs. Check back soon.</p>
+          ) : (
+            <div className="events-grid">
+              {followedClubEvents.map((event) => <EventCard key={event.id} event={event} />)}
+            </div>
+          )}
+
+          <div className="events-page__head" style={{ marginTop: '2rem' }}>
+            <h2 className="events-page__section-title">Squad Activity</h2>
+          </div>
+          {squadActivityEvents.length === 0 ? (
+            <p className="events-page__empty">No squad member RSVPs yet.</p>
+          ) : (
+            <div className="events-grid">
+              {squadActivityEvents.map((event) => <EventCard key={event.id} event={event} />)}
+            </div>
+          )}
         </div>
       </div>
     </div>

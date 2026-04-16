@@ -11,10 +11,15 @@ For each dequeued post:
 """
 from __future__ import annotations
 
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import asyncio
 import logging
-import os
 import signal
+import zoneinfo
+from datetime import datetime
 from functools import partial
 
 from google import genai
@@ -30,11 +35,31 @@ from utils.queue import dequeue
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+_NY_TZ = zoneinfo.ZoneInfo("America/New_York")
+
 # ── Module-level Gemini client (one instance, reused across all calls) ─────────
 _client = genai.Client(api_key=settings.GEMINI_API_KEY)
 
 _STOP = False
 _PROMPT_TEMPLATE: str = ""  # loaded once at startup
+
+
+def _parse_start_time(raw: str | None) -> datetime | None:
+    """
+    Parse a Gemini start_time string into a timezone-aware NY datetime.
+
+    Handles ISO 8601 variants like "2025-03-21T18:00:00" or "2025-03-21".
+    Returns None if the string is absent or unparseable.
+    """
+    if not raw:
+        return None
+    # Strip microseconds / timezone suffix so fromisoformat is consistent across Python versions
+    normalized = raw.strip()[:19]
+    try:
+        dt = datetime.fromisoformat(normalized)
+        return dt.replace(tzinfo=_NY_TZ)
+    except (ValueError, OverflowError):
+        return None
 
 
 def _handle_signal(sig, frame) -> None:  # noqa: ANN001
@@ -151,6 +176,7 @@ async def _process_post(payload: dict) -> None:
             rso_name=extracted.rso_name or None,
             title=extracted.event_name or "Untitled Event",
             date=extracted.start_time or None,
+            start_at=_parse_start_time(extracted.start_time),
             location=extracted.location or None,
             confidence=confidence,
             source_post_id=post_id,
@@ -190,3 +216,15 @@ async def run_extractor_worker() -> None:
             )
 
     logger.info("Extractor worker shut down cleanly.")
+
+
+if __name__ == "__main__":
+    import sys
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)-8s | %(name)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        stream=sys.stdout,
+    )
+    asyncio.run(run_extractor_worker())

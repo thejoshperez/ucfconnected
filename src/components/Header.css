@@ -191,3 +191,145 @@
 .auth-panel__toggle:hover {
   color: var(--ucf-black);
 }
+
+/* ── Profile link + unverified dot ──────────────────────────────────── */
+a.nav__username {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color var(--transition-fast);
+}
+
+a.nav__username:hover {
+  color: var(--ucf-black);
+}
+
+.nav__unverified-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+}
+
+/* ── Email verification banner ───────────────────────────────────────── */
+.verification-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border-top: 1px solid rgba(245, 158, 11, 0.25);
+  padding: var(--space-sm) var(--space-xl);
+}
+
+.verification-banner__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  justify-content: space-between;
+}
+
+.verification-banner__copy {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 200px;
+}
+
+.verification-banner__icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.verification-banner__text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.verification-banner__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.verification-banner__input {
+  width: 120px;
+  padding: 4px var(--space-sm);
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.15em;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: var(--radius-sm);
+  color: var(--ucf-black);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.verification-banner__input:focus {
+  border-color: var(--ucf-gold);
+}
+
+.verification-banner__btn {
+  padding: 4px var(--space-md);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  background: var(--ucf-black);
+  color: #fff;
+  transition: background var(--transition-fast), opacity var(--transition-fast);
+}
+
+.verification-banner__btn:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.verification-banner__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.verification-banner__btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.verification-banner__btn--ghost:hover:not(:disabled) {
+  background: var(--bg);
+  color: var(--ucf-black);
+}
+
+.verification-banner__error {
+  max-width: 1200px;
+  margin: var(--space-xs) auto 0;
+  font-size: 0.78rem;
+  color: #dc2626;
+}
+
+.verification-banner__success {
+  max-width: 1200px;
+  margin: var(--space-xs) auto 0;
+  font-size: 0.78rem;
+  color: #16a34a;
+}
+
+@media (max-width: 640px) {
+  .verification-banner {
+    padding: var(--space-sm) var(--space-lg);
+  }
+
+  .verification-banner__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .verification-banner__input {
+    width: 90px;
+  }
+}

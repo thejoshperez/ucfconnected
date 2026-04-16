@@ -1,0 +1,50 @@
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (direct-to-DB) ═══
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 15:33:26 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | __main__: KnightConnect produced 0 new event(s).
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | __main__: ═══ Phase 2/2: Instagram (Apify + Gemini) ═══
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | scraper.instagram_scraper: Apify: scraping @ucfknights …
+run_scraper-1  | 2026-04-16 15:33:26 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucfknights: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_sga …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_sga: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_engineering …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_engineering: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_gamedev …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_gamedev: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_acm …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_acm: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Instagram pipeline complete. 0 post(s) processed, 0 event(s) saved.
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | __main__: Instagram produced 0 new event(s).
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | __main__: ══════════════════════════════════════════════════════════════
+run_scraper-1  |   Pipeline complete.
+run_scraper-1  |   KnightConnect : 0 new event(s)
+run_scraper-1  |   Instagram     : 0 new event(s)
+run_scraper-1  |   TOTAL         : 0
+run_scraper-1  | ══════════════════════════════════════════════════════════════
+run_scraper-1  | 2026-04-16 15:33:27 | WARNING  | __main__: All scrapers returned 0 results. The database was NOT populated in this run.
+run_scraper-1  | 2026-04-16 15:34:21 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 15:34:21 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (direct-to-DB) ═══
+run_scraper-1  | 2026-04-16 15:34:21 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 15:34:21 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 15:34:21 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 15:34:21 | INFO     | __main__: KnightConnect produced 0 new event(s).
+run_scraper-1  | 2026-04-16 15:34:21 | INFO     | __main__: ═══ Phase 2/2: Instagram (Apify + Gemini) ═══
+run_scraper-1  | 2026-04-16 15:34:21 | INFO     | scraper.instagram_scraper: Apify: scraping @ucfknights …
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> Status: RUNNING, Message: 
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:31.627Z ACTOR: Pulling container image of build Ne0jhyh81jFIVxF9g from registry.
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:31.629Z ACTOR: Creating container.
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:31.818Z ACTOR: Starting container.
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:31.820Z ACTOR: Running under "LIMITED_PERMISSIONS" permission level.
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:32.400Z [32mINFO[39m  System info[90m {"apifyVersion":"3.6.0","apifyClientVersion":"2.22.2","crawleeVersion":"3.16.0","osType":"Linux","nodeVersion":"v22.22.2"}[39m
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:32.525Z [32mINFO[39m  Results Limit [object Object], ACTOR_MAX_PAID_DATASET_ITEMS
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:32.530Z [32mINFO[39m  [Status message]: Starting the scraper with 1 direct URL(s)
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> Status: RUNNING, Message: Starting the crawler.
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:32.646Z [32mINFO[39m [33m CheerioCrawler:[39m Starting the crawler.
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:35.199Z [32mINFO[39m  NO RESULTS: zero public posts for https://www.instagram.com/ucfknights within the given requirements
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:35.419Z [32mINFO[39m [33m CheerioCrawler:[39m All requests from the queue have been processed, the crawler will shut down.
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:35.495Z [32mINFO[39m [33m CheerioCrawler:[39m Final request statistics:[90m {"requestsFinished":2,"requestsFailed":0,"retryHistogram":[2],"requestAvgFailedDurationMillis":null,"requestAvgFinishedDurationMillis":1334,"requestsFinishedPerMinute":41,"requestsFailedPerMinute":0,"requestTotalDurationMillis":2667,"requestsTotal":2,"crawlerRuntimeMillis":2959}[39m
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:35.497Z [32mINFO[39m [33m CheerioCrawler:[39m Finished! Total 2 requests: 2 succeeded, 0 failed.[90m {"terminal":true}[39m
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> 2026-04-16T15:34:35.499Z [32mINFO[39m  [Status message]: Scraper finished
+run_scraper-1  | [36m[apify.instagram-post-scraper runId:BVScYfAD1KTcQQSel][0m -> Status: SUCCEEDED, Message: Scraper finished

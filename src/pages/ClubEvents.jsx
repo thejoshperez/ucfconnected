@@ -1,101 +1,61 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import EventCard from '../components/EventCard'
+import { useClubEventsData } from '../features/events/hooks'
 import { clubs } from '../data/clubs'
 import './Events.css'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
 export default function ClubEvents() {
   const { instagram } = useParams()
-  const { followClub, username, token } = useAuth()
-  
-  const [events, setEvents] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [notFound, setNotFound] = useState(false)
-  
-  const [followStatus, setFollowStatus] = useState(null) // null | 'followed' | 'already_following' | 'error'
+  const { followClub, unfollowClub, username, user, isFollowingClub } = useAuth()
+  const { events, loading, error, notFound, reload } = useClubEventsData(instagram)
   const [followLoading, setFollowLoading] = useState(false)
+  const [followError, setFollowError] = useState(false)
 
-  // Look up static club data for display name and description
-  const clubData = clubs.find((c) => c.instagram === instagram)
+  const clubData = clubs.find((club) => club.instagram === instagram)
   const displayName = clubData?.name || `@${instagram}`
-
-  const fetchClubEvents = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    setNotFound(false)
-    try {
-      const res = await fetch(`${API_BASE}/events/club/${encodeURIComponent(instagram)}`)
-      if (res.status === 404) {
-        setNotFound(true)
-        return
-      }
-      if (!res.ok) throw new Error(`Server returned ${res.status}`)
-      const data = await res.json()
-      setEvents(data)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }, [instagram])
+  const isFollowing = isFollowingClub(instagram)
 
   useEffect(() => {
     document.title = `${displayName} | KnightLife`
-    fetchClubEvents()
-    return () => { document.title = 'KnightLife' }
-  }, [fetchClubEvents, displayName])
-
-  // Pre-fetch following status on mount if authenticated
-  useEffect(() => {
-    async function checkFollowStatus() {
-      if (!token || !instagram) return
-      try {
-        const res = await fetch(`${API_BASE}/auth/follows`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        if (res.ok) {
-          const follows = await res.json()
-          if (follows.some(f => f.toLowerCase() === instagram.toLowerCase())) {
-            setFollowStatus('already_following')
-          }
-        }
-      } catch (e) {
-        // Ignore silent failure on mount checking
-      }
+    return () => {
+      document.title = 'KnightLife'
     }
-    checkFollowStatus()
-  }, [token, instagram])
+  }, [displayName])
 
-  const handleFollow = async (e) => {
-    e.preventDefault()
-    e.stopPropagation()
+  const handleFollow = async (event) => {
+    event.preventDefault()
+    event.stopPropagation()
 
     if (!username) {
       alert('Sign in first to follow clubs!')
       return
     }
 
+    if (!user?.email_verified) {
+      alert('Please verify your email to follow clubs. Check the banner at the top of the page.')
+      return
+    }
+
     setFollowLoading(true)
+    setFollowError(false)
     try {
-      const result = await followClub(instagram)
-      setFollowStatus(result.status) // 'followed' | 'already_following'
-    } catch (err) {
-      console.error('[Follow] error:', err)
-      setFollowStatus('error')
+      if (isFollowing) {
+        await unfollowClub(instagram)
+      } else {
+        await followClub(instagram)
+      }
+    } catch (error) {
+      console.error('[Follow] error:', error)
+      setFollowError(true)
     } finally {
       setFollowLoading(false)
-      setTimeout(() => setFollowStatus(null), 3000)
     }
   }
 
   return (
     <section className="events-page">
-
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
       <div className="events-page__hero">
         <div className="events-page__hero-bg" aria-hidden />
         <div className="events-page__hero-inner">
@@ -111,7 +71,7 @@ export default function ClubEvents() {
 
           {clubData?.tags?.length > 0 && (
             <div className="club-detail__tags">
-              {clubData.tags.map(tag => (
+              {clubData.tags.map((tag) => (
                 <span key={tag} className="club-detail__tag">{tag}</span>
               ))}
             </div>
@@ -131,27 +91,29 @@ export default function ClubEvents() {
                 rel="noopener noreferrer"
                 className="club-detail__instagram"
               >
-                @{instagram} &#x2197;
+                @{instagram} ↗
               </a>
             )}
             <button
               type="button"
-              className={`club-detail__follow${followStatus === 'followed' ? ' club-detail__follow--done' : ''}`}
+              className={`club-detail__follow${isFollowing ? ' club-detail__follow--done' : ''}`}
               onClick={handleFollow}
-              disabled={followLoading || followStatus === 'followed' || followStatus === 'already_following'}
+              aria-pressed={isFollowing}
+              title={isFollowing ? 'Click to unfollow this club' : 'Follow this club'}
+              disabled={followLoading}
             >
-              {followLoading ? '…'
-                : followStatus === 'followed' ? 'Following ✓'
-                : followStatus === 'already_following' ? 'Already following'
-                : followStatus === 'error' ? 'Error — retry'
-                : 'Follow'}
+              {followLoading
+                ? '...'
+                : followError
+                  ? 'Error - retry'
+                  : isFollowing
+                    ? 'Following ✓'
+                    : 'Follow'}
             </button>
           </div>
-
         </div>
       </div>
 
-      {/* ── Body ─────────────────────────────────────────────────────── */}
       <div className="events-page__body">
         <div className="events-page__inner">
           <div className="events-page__head">
@@ -160,8 +122,8 @@ export default function ClubEvents() {
 
           {loading && (
             <div className="events-grid" aria-busy="true">
-              {Array.from({ length: 3 }, (_, i) => (
-                <div key={i} className="event-card-skeleton" aria-hidden="true">
+              {Array.from({ length: 3 }, (_, index) => (
+                <div key={index} className="event-card-skeleton" aria-hidden="true">
                   <div className="event-card-skeleton__header">
                     <div className="event-card-skeleton__shimmer event-card-skeleton__icon" />
                     <div className="event-card-skeleton__shimmer event-card-skeleton__date" />
@@ -184,12 +146,12 @@ export default function ClubEvents() {
 
           {!loading && error && (
             <div className="events-page__state events-page__state--error">
-              <p>Could not load events — is the API running?</p>
+              <p>Could not load events. Is the API running?</p>
               <p className="events-page__error-detail">{error}</p>
-              <button 
-                type="button" 
-                className="events-page__retry" 
-                onClick={fetchClubEvents}
+              <button
+                type="button"
+                className="events-page__retry"
+                onClick={reload}
                 style={{ marginTop: '1rem', padding: '0.5rem 1.5rem', background: 'var(--ucf-black)', color: 'var(--ucf-gold)', border: 'none', borderRadius: 'var(--radius-full)', cursor: 'pointer', fontWeight: 600 }}
               >
                 Retry
@@ -207,15 +169,12 @@ export default function ClubEvents() {
           )}
 
           {!loading && !error && !notFound && events.length > 0 && (
-            <>
-              <div className="events-grid">
-                {events.map((event) => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </div>
-            </>
+            <div className="events-grid">
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
           )}
-
         </div>
       </div>
     </section>

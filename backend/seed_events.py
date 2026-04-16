@@ -12,11 +12,35 @@ from __future__ import annotations
 import asyncio
 import sys
 import os
+import zoneinfo
+from datetime import datetime, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 
 from db.database import AsyncSessionLocal, init_db
 from db.models import Post, Event
+
+_NY_TZ = zoneinfo.ZoneInfo("America/New_York")
+
+
+def _make_date_str(days_ahead: int) -> str:
+    """Return a human-readable date string like 'Monday, April 21' relative to today."""
+    d = (datetime.now(_NY_TZ) + timedelta(days=days_ahead)).date()
+    return f"{d.strftime('%A, %B')} {d.day}"
+
+
+def _make_start_at(days_ahead: int, time_str: str | None) -> datetime | None:
+    """Build a timezone-aware NY datetime from a relative day offset + HH:MM AM/PM string."""
+    if not time_str:
+        return None
+    # Take only the start portion from ranges like "6:00 PM – 10:00 PM"
+    time_part = time_str.split("–")[0].strip().split("-")[0].strip()
+    d = (datetime.now(_NY_TZ) + timedelta(days=days_ahead)).date()
+    try:
+        dt = datetime.strptime(f"{d.isoformat()} {time_part}", "%Y-%m-%d %I:%M %p")
+        return dt.replace(tzinfo=_NY_TZ)
+    except ValueError:
+        return None
 
 # ── All instagram handles match clubs.js exactly ─────────────────────────────
 
@@ -99,7 +123,7 @@ SAMPLE_EVENTS = [
     {
         "club": "ucf_sga",
         "title": "Student Senate Open Meeting",
-        "date": "Tuesday, April 22",
+        "days_ahead": 1,
         "time": "7:00 PM",
         "location": "Student Union 214",
         "description": "Open to all UCF students. Agenda: new funding allocations for student orgs and parking policy proposal vote. Make your voice heard.",
@@ -109,18 +133,18 @@ SAMPLE_EVENTS = [
     {
         "club": "ucfcab",
         "title": "Movie Night Under the Stars: Dune Part Two",
-        "date": "Friday, April 25",
+        "days_ahead": 4,
         "time": "8:30 PM",
         "location": "Reflection Pond Lawn",
-        "description": "Free outdoor screening of Dune: Part Two with free popcorn. Bring blankets and lawn chairs. Rain date: Saturday April 26.",
+        "description": "Free outdoor screening of Dune: Part Two with free popcorn. Bring blankets and lawn chairs.",
         "confidence": 0.95,
         "post_idx": 1,
     },
     {
         "club": "ucfosi",
         "title": "Spring RSO Org Fair",
-        "date": "Wednesday, April 23",
-        "time": "11:00 AM – 2:00 PM",
+        "days_ahead": 2,
+        "time": "11:00 AM",
         "location": "Memory Mall",
         "description": "Browse tables from 100+ Registered Student Organizations. Perfect for students looking to get involved in campus life.",
         "confidence": 0.96,
@@ -129,7 +153,7 @@ SAMPLE_EVENTS = [
     {
         "club": "knightthonucf",
         "title": "Knight-Thon Pre-Marathon Kickoff",
-        "date": "Thursday, April 24",
+        "days_ahead": 3,
         "time": "7:30 PM",
         "location": "RWC Multipurpose Room",
         "description": "Learn what to expect at the 20-hour dance marathon, meet your fundraising team, and get hyped for the event. Free food and merch giveaway.",
@@ -141,8 +165,8 @@ SAMPLE_EVENTS = [
     {
         "club": "hackucf",
         "title": "Internal CTF Competition",
-        "date": "Saturday, April 26",
-        "time": "6:00 PM – 10:00 PM",
+        "days_ahead": 5,
+        "time": "6:00 PM",
         "location": "HEC 450",
         "description": "Capture the Flag competition with challenges from beginner web to advanced binary exploitation. Form a team or compete solo.",
         "confidence": 0.95,
@@ -151,7 +175,7 @@ SAMPLE_EVENTS = [
     {
         "club": "knighthacks",
         "title": "Workshop: Deploying Full-Stack Apps with Docker & Railway",
-        "date": "Friday, April 25",
+        "days_ahead": 4,
         "time": "6:00 PM",
         "location": "Engineering 1 Room 106",
         "description": "Containerize a React + FastAPI project and deploy it live during the session. Bring a laptop. Free for all skill levels.",
@@ -161,7 +185,7 @@ SAMPLE_EVENTS = [
     {
         "club": "ucf_acm",
         "title": "ACM Spring General Meeting",
-        "date": "Tuesday, April 22",
+        "days_ahead": 1,
         "time": "6:00 PM",
         "location": "HEC 101",
         "description": "Member project showcase, hackathon theme vote, and ACM t-shirt distribution. Free pizza for all attendees.",
@@ -171,7 +195,7 @@ SAMPLE_EVENTS = [
     {
         "club": "ucfthetatau",
         "title": "Theta Tau Engineering Alumni Panel",
-        "date": "Monday, April 21",
+        "days_ahead": 0,
         "time": "7:00 PM",
         "location": "ENG2 203",
         "description": "UCF alumni from SpaceX, Lockheed Martin, and Siemens discuss engineering career paths. Resume reviews available after the panel.",
@@ -181,7 +205,7 @@ SAMPLE_EVENTS = [
     {
         "club": "ieee_ucf",
         "title": "Intro to PCB Design Workshop",
-        "date": "Thursday, April 24",
+        "days_ahead": 3,
         "time": "6:00 PM",
         "location": "ENG1 385",
         "description": "Learn KiCad from scratch and design your first circuit board. Limited to 30 seats. Bring a laptop. Free for IEEE members, $5 otherwise.",
@@ -190,8 +214,8 @@ SAMPLE_EVENTS = [
     },
     {
         "club": "gamedevknights",
-        "title": "Spring Game Jam 2025 Kickoff",
-        "date": "Friday, April 25",
+        "title": "Spring Game Jam Kickoff",
+        "days_ahead": 4,
         "time": "5:00 PM",
         "location": "HEC 101",
         "description": "48-hour game jam with theme reveal at 5:30 PM. Teams up to 4. Prizes, food, and fun. All engines welcome (Unity, Godot, Unreal).",
@@ -203,7 +227,7 @@ SAMPLE_EVENTS = [
     {
         "club": "wibucf",
         "title": "Women in Business Spring Networking Night",
-        "date": "Wednesday, April 23",
+        "days_ahead": 2,
         "time": "6:30 PM",
         "location": "BA1 119",
         "description": "Network with UCF alumni from Deloitte, EY, and JP Morgan. Business casual attire, bring resumes. RSVP required via bio link.",
@@ -213,7 +237,7 @@ SAMPLE_EVENTS = [
     {
         "club": "ucfamsa",
         "title": "MCAT Study Strategies Workshop",
-        "date": "Monday, April 21",
+        "days_ahead": 0,
         "time": "7:00 PM",
         "location": "HPA1 106",
         "description": "Test-taking strategies and section breakdowns with a UCF College of Medicine advisor. Free for members, $2 for non-members.",
@@ -223,7 +247,7 @@ SAMPLE_EVENTS = [
     {
         "club": "volunteerucf",
         "title": "Spring Service Day: Second Harvest Food Bank",
-        "date": "Saturday, April 26",
+        "days_ahead": 5,
         "time": "9:00 AM",
         "location": "Second Harvest Food Bank, Orlando",
         "description": "3-hour volunteer shift sorting food donations for Central Florida families. Transportation from campus provided. Limited spots.",
@@ -269,13 +293,15 @@ async def seed(force: bool = False) -> None:
         # Insert events
         for e in SAMPLE_EVENTS:
             post = posts[e["post_idx"]]
+            days_ahead = e.get("days_ahead", 0)
             event = Event(
                 club=e["club"],
                 title=e["title"],
-                date=e["date"],
-                time=e["time"],
-                location=e["location"],
-                description=e["description"],
+                date=_make_date_str(days_ahead),
+                time=e.get("time"),
+                start_at=_make_start_at(days_ahead, e.get("time")),
+                location=e.get("location"),
+                description=e.get("description"),
                 confidence=e["confidence"],
                 source_post_id=post.id,
             )

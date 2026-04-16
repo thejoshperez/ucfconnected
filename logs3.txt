@@ -1,0 +1,26 @@
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (direct-to-DB) ═══
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 15:33:26 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | __main__: KnightConnect produced 0 new event(s).
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | __main__: ═══ Phase 2/2: Instagram (Apify + Gemini) ═══
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | scraper.instagram_scraper: Apify: scraping @ucfknights …
+run_scraper-1  | 2026-04-16 15:33:26 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucfknights: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:26 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_sga …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_sga: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_engineering …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_engineering: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_gamedev …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_gamedev: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Apify: scraping @ucf_acm …
+run_scraper-1  | 2026-04-16 15:33:27 | ERROR    | scraper.instagram_scraper: Apify actor call failed for @ucf_acm: Input is not valid: Field input.username is required
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | scraper.instagram_scraper: Instagram pipeline complete. 0 post(s) processed, 0 event(s) saved.
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | __main__: Instagram produced 0 new event(s).
+run_scraper-1  | 2026-04-16 15:33:27 | INFO     | __main__: ══════════════════════════════════════════════════════════════
+run_scraper-1  |   Pipeline complete.
+run_scraper-1  |   KnightConnect : 0 new event(s)
+run_scraper-1  |   Instagram     : 0 new event(s)
+run_scraper-1  |   TOTAL         : 0
+run_scraper-1  | ══════════════════════════════════════════════════════════════
+run_scraper-1  | 2026-04-16 15:33:27 | WARNING  | __main__: All scrapers returned 0 results. The database was NOT populated in this run.

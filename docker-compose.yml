@@ -2,10 +2,32 @@
 # KnightLife — local development / staging stack
 #
 # Usage:
-#   docker compose up -d          # start all services
-#   docker compose logs -f api    # tail API logs
-#   docker compose down -v        # stop and remove volumes
+#   docker compose up -d               # start all services
+#   docker compose logs -f api         # tail API logs
+#   docker compose restart run_scraper # re-run the scraper manually
+#   docker compose down -v             # stop and remove volumes
 # ─────────────────────────────────────────────────────────────────────────────
+
+# ── Shared backend config (anchor) ──────────────────────────────────────────
+# Both Python services (api, run_scraper) share the same image build,
+# env file, and Docker-network DB/Redis URLs.
+x-backend: &backend
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  env_file:
+    - ./backend/.env
+  environment:
+    # Override localhost defaults in .env with Docker service hostnames
+    DATABASE_URL: postgresql+asyncpg://knightlife:knightlife@db:5432/knightlife
+    REDIS_URL: redis://redis:6379/0
+  volumes:
+    - ./backend:/app
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
 
 services:
   # ── PostgreSQL ─────────────────────────────────────────────────────────────
@@ -43,30 +65,26 @@ services:
 
   # ── FastAPI backend ────────────────────────────────────────────────────────
   api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    <<: *backend
     restart: unless-stopped
     ports:
       - "8000:8000"
-    env_file:
-      - ./backend/.env
-    environment:
-      # These override any values in .env, pointing at Docker service names
-      # instead of localhost — this is what makes the container network work.
-      DATABASE_URL: postgresql+asyncpg://knightlife:knightlife@db:5432/knightlife
-      REDIS_URL: redis://redis:6379/0
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
+
+  # ── Scraper (one-shot at startup) ─────────────────────────────────────────
+  # Runs once when the stack starts:
+  #   Instagram: the configured Apify task fetches posts, Gemini extracts
+  #   events from image + caption, and results go straight to Postgres.
+  # To re-run manually: docker compose restart run_scraper
+  run_scraper:
+    <<: *backend
+    restart: "no"
+    command: python run_scraper.py
 
 volumes:
   pgdata:

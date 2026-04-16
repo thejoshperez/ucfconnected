@@ -1,89 +1,172 @@
 """
-Instagram scraper built on Instaloader.
+Instagram scraper - self-contained Apify task + Gemini pipeline.
 
-Strategy
---------
-1. For each club account in settings.CLUB_ACCOUNTS:
-   a. Load the profile.
-   b. Iterate recent posts up to POST_LIMIT.
-   c. Skip posts already in the `posts` table (checked by permalink).
-   d. Persist new posts to Postgres.
-   e. Enqueue each new post onto the RAW_POSTS_QUEUE for classification.
+Architecture
+------------
+1. Run the configured Apify task.
+2. Read post items from that task's dataset.
+3. For each new post:
+   a. Download the image in memory via requests.get.
+   b. Send image bytes + caption to Gemini for structured JSON extraction.
+   c. If is_valid_event=True -> save a Post and an Event row to Postgres.
+   d. If is_valid_event=False -> save a Post row only (dedup anchor).
 
-Rate-limiting
--------------
-Instaloader defaults include polite sleep between requests.
-For production at scale, use a session cookie (log in once, reuse the
-session file) and distribute accounts across multiple scrapers.
+No Redis queue and no separate extractor worker - the entire pipeline runs
+inline from scrape to database commit.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
-import os
-from datetime import date, datetime, timezone
+import zoneinfo
+from datetime import datetime, timezone
+from functools import partial
 
-import instaloader
+import requests
+from apify_client import ApifyClient
+from google import genai
+from google.genai import types
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from config.settings import get_settings
-from db.database import AsyncSessionLocal, init_db
-from db.models import Post
-from utils.queue import enqueue
+from db.database import AsyncSessionLocal
+from db.models import Event, Post, Follow, User
+from utils.email_service import send_calendar_invite
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
+_NY_TZ = zoneinfo.ZoneInfo("America/New_York")
 
-def _build_loader() -> instaloader.Instaloader:
-    """
-    Create a configured Instaloader instance.
 
-    Auth priority:
-      1. Session file (INSTAGRAM_SESSION_FILE) — supports 2FA accounts.
-      2. Username + password (no 2FA) — fallback.
-      3. Anonymous — very limited, will hit 401s quickly.
-    """
-    loader = instaloader.Instaloader(
-        download_pictures=False,
-        download_videos=False,
-        download_video_thumbnails=False,
-        download_geotags=False,
-        download_comments=False,
-        save_metadata=False,
-        compress_json=False,
-        quiet=True,
-        request_timeout=30,
+class EventDetails(BaseModel):
+    """Schema enforced on every Gemini extraction call via response_schema."""
+
+    is_valid_event: bool = Field(
+        description=(
+            "True if this post announces a specific upcoming student event. "
+            "False if it is a general announcement, meme, or recap of a past event."
+        )
+    )
+    title: str | None = Field(
+        default=None, description="The name or title of the event"
+    )
+    date: str | None = Field(
+        default=None,
+        description="The date the event takes place (ISO 8601 preferred, e.g. 2025-04-25)",
+    )
+    time: str | None = Field(
+        default=None, description="The time the event starts (e.g. '7:00 PM')"
+    )
+    end_time: str | None = Field(
+        default=None, description="The time the event ends (e.g. '9:00 PM')"
+    )
+    location: str | None = Field(
+        default=None, description="Where the event is being held"
+    )
+    description: str | None = Field(
+        default=None, description="A short summary of the event"
     )
 
-    session_file = settings.INSTAGRAM_SESSION_FILE
-    username = settings.INSTAGRAM_USERNAME
 
-    # ── Option 1: session file (preferred, works with 2FA) ───────────────
-    if session_file and os.path.exists(session_file):
+_DATE_FORMATS = [
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%dT%H:%M",
+    "%Y-%m-%d %I:%M %p",
+    "%B %d, %Y %I:%M %p",
+    "%m/%d/%Y %I:%M %p",
+    "%Y-%m-%d",
+    "%B %d, %Y",
+    "%m/%d/%Y",
+]
+
+
+def _parse_start_at(date_str: str | None, time_str: str | None) -> datetime | None:
+    """Combine Gemini's date + time strings into a timezone-aware NY datetime."""
+    if not date_str:
+        return None
+
+    raw = date_str.strip()
+    if time_str:
+        raw = f"{raw} {time_str.strip()}"
+
+    try:
+        dt = datetime.fromisoformat(raw[:19])
+        return dt.replace(tzinfo=_NY_TZ)
+    except (ValueError, OverflowError):
+        pass
+
+    for fmt in _DATE_FORMATS:
         try:
-            loader.load_session_from_file(username, session_file)
-            logger.info("Loaded Instagram session from %s", session_file)
-            return loader
-        except Exception as exc:
-            logger.warning("Could not load session file %s: %s — trying password.", session_file, exc)
+            dt = datetime.strptime(raw, fmt)
+            return dt.replace(tzinfo=_NY_TZ)
+        except ValueError:
+            continue
 
-    # ── Option 2: plain username + password (no 2FA) ─────────────────────
-    if username and settings.INSTAGRAM_PASSWORD:
+    logger.debug("Could not parse date/time: date=%r time=%r", date_str, time_str)
+    return None
+
+
+def _normalize_permalink(item: dict) -> str | None:
+    permalink = (
+        item.get("url")
+        or item.get("permalink")
+        or item.get("postUrl")
+        or item.get("inputUrl")
+        or item.get("shortCode")
+        or ""
+    )
+    if permalink and not permalink.startswith("http"):
+        permalink = f"https://www.instagram.com/p/{permalink}/"
+    return permalink or None
+
+
+def _extract_owner_username(item: dict) -> str | None:
+    owner = item.get("owner")
+    if isinstance(owner, dict):
+        username = owner.get("username") or owner.get("ownerUsername")
+        if username:
+            return username
+
+    return (
+        item.get("ownerUsername")
+        or item.get("username")
+        or item.get("profileUsername")
+    )
+
+
+def _extract_image_url(item: dict) -> str | None:
+    return (
+        item.get("displayUrl")
+        or item.get("imageUrl")
+        or item.get("display_url")
+        or item.get("image_url")
+        or item.get("thumbnailUrl")
+    )
+
+
+def _parse_post_timestamp(raw_value) -> datetime | None:
+    if raw_value in (None, ""):
+        return None
+
+    if isinstance(raw_value, (int, float)):
         try:
-            loader.login(username, settings.INSTAGRAM_PASSWORD)
-            logger.info("Logged into Instagram as %s", username)
-            return loader
-        except instaloader.exceptions.BadCredentialsException:
-            logger.error("Instagram login failed — bad credentials.")
-        except instaloader.exceptions.TwoFactorAuthRequiredException:
-            logger.error(
-                "Instagram login failed — 2FA is enabled. "
-                "Run `python login.py` once to save a session file."
-            )
+            return datetime.fromtimestamp(raw_value, tz=timezone.utc)
+        except (OverflowError, OSError, ValueError):
+            return None
 
-    # ── Option 3: anonymous (will likely 401 on most accounts) ───────────
-    logger.warning("Scraping as anonymous user — run `python login.py` to authenticate.")
-    return loader
+    if isinstance(raw_value, str):
+        try:
+            normalized = raw_value.replace("Z", "+00:00")
+            parsed = datetime.fromisoformat(normalized)
+            if parsed.tzinfo is None:
+                return parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc)
+        except ValueError:
+            return None
+
+    return None
 
 
 async def _permalink_exists(session, permalink: str) -> bool:
@@ -91,173 +174,219 @@ async def _permalink_exists(session, permalink: str) -> bool:
     return result.scalar_one_or_none() is not None
 
 
-async def scrape_account(loader: instaloader.Instaloader, username: str) -> int:
-    """
-    Scrape *username*, persist new posts, enqueue them.
-    Returns the number of new posts saved.
-    """
-    logger.info("Scraping @%s …", username)
+async def _dispatch_auto_invites_for_event(session, event: Event, club_username: str):
+    """Notify users who follow this club and have auto-invites enabled."""
+    res = await session.execute(
+        select(User)
+        .join(Follow, Follow.user_id == User.id)
+        .where(
+            Follow.club_username == club_username,
+            User.auto_invites_enabled == True,
+            User.email_verified == True,
+            User.email.is_not(None)
+        )
+    )
+    followers = res.scalars().all()
+    for user in followers:
+        try:
+            send_calendar_invite(
+                user_email=user.email,
+                event=event,
+                message_body=f"An organization you follow (@{club_username}) just posted a new event."
+            )
+        except Exception as e:
+            logger.warning("Failed to auto-invite user %s for event %s: %s", user.email, event.title, e)
+
+
+def _download_image(url: str) -> bytes | None:
+    """Download image bytes into memory. Returns None on failure."""
     try:
-        profile = instaloader.Profile.from_username(loader.context, username)
-    except instaloader.exceptions.ProfileNotExistsException:
-        logger.warning("Profile @%s does not exist — skipping.", username)
-        return 0
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        return resp.content
     except Exception as exc:
-        logger.error("Failed to load profile @%s: %s", username, exc)
-        return 0
-
-    from datetime import timedelta
-    today = datetime.combine(date.today() - timedelta(days=2), datetime.min.time(), tzinfo=timezone.utc)
-    new_count = 0
-    async with AsyncSessionLocal() as session:
-        for post in profile.get_posts():
-            if new_count >= settings.POST_LIMIT:
-                break
-
-            # Posts come newest-first; stop as soon as we hit something before today
-            post_ts = post.date_utc.replace(tzinfo=timezone.utc) if post.date_utc else None
-            if post_ts and post_ts < today:
-                logger.debug("@%s: reached posts older than today — stopping.", username)
-                break
-
-            permalink = f"https://www.instagram.com/p/{post.shortcode}/"
-            if await _permalink_exists(session, permalink):
-                logger.debug("Post %s already in DB — stopping early for @%s.", permalink, username)
-                break
-
-            image_url = post.url if post.url else None
-            ts = post.date_utc.replace(tzinfo=timezone.utc) if post.date_utc else None
-
-            db_post = Post(
-                club_username=username,
-                caption=post.caption,
-                timestamp=ts,
-                image_url=image_url,
-                permalink=permalink,
-                processed=False,
-            )
-            session.add(db_post)
-            await session.flush()  # get the auto-generated id
-
-            await enqueue(
-                settings.RAW_POSTS_QUEUE,
-                {
-                    "post_id": db_post.id,
-                    "club_username": username,
-                    "caption": post.caption,
-                    "image_url": image_url,
-                    "permalink": permalink,
-                },
-            )
-            new_count += 1
-            logger.debug("Saved post id=%d for @%s", db_post.id, username)
-
-        await session.commit()
-
-    logger.info("@%s: %d new post(s) saved and enqueued.", username, new_count)
-    return new_count
+        logger.warning("Failed to download image %s: %s", url, exc)
+        return None
 
 
-async def run_scraper() -> int:
-    """Scrape all configured accounts. Returns total new post count."""
-    loader = _build_loader()
-    total = 0
-    for username in settings.CLUB_ACCOUNTS:
-        total += await scrape_account(loader, username)
-    logger.info("Scrape complete. %d total new posts.", total)
-    return total
+def _call_gemini_sync(
+    client: genai.Client,
+    parts: list,
+    model: str,
+) -> str:
+    """Synchronous Gemini call meant to run inside run_in_executor."""
+    response = client.models.generate_content(
+        model=model,
+        contents=parts,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=EventDetails,
+            temperature=0.1,
+        ),
+    )
+    return response.text
 
 
-async def run_scraper_apify() -> int:
+async def scrape_instagram_apify() -> int:
     """
-    Apify-based failover for Instagram scraping.
+    Scrape Instagram via the configured Apify task, extract events with
+    Gemini, and write results directly to Postgres.
 
-    Called ONLY when the primary Instaloader path fails or returns zero
-    results. Uses the Apify "apify/instagram-post-scraper" actor via
-    the apify-client SDK.
-
-    Returns the total number of new posts saved.
+    Returns the total number of new events saved.
     """
     token = settings.APIFY_API_TOKEN
     if not token:
         logger.error(
-            "APIFY_API_TOKEN is not set — cannot run Apify failover. "
-            "Add it to .env to enable this fallback."
+            "APIFY_API_TOKEN is not set - cannot scrape Instagram. "
+            "Add it to .env to enable this source."
         )
         return 0
 
-    from apify_client import ApifyClient
+    if not settings.GEMINI_API_KEY:
+        logger.error("GEMINI_API_KEY is not set - cannot extract events.")
+        return 0
 
-    logger.info("Starting Apify Instagram failover for %d accounts …", len(settings.CLUB_ACCOUNTS))
-    client = ApifyClient(token)
+    apify = ApifyClient(token)
+    gemini = genai.Client(api_key=settings.GEMINI_API_KEY)
+    loop = asyncio.get_event_loop()
+    task_id = settings.APIFY_INSTAGRAM_TASK_ID
 
-    total = 0
-    for username in settings.CLUB_ACCOUNTS:
-        logger.info("Apify: scraping @%s …", username)
-        run_input = {
-            "usernames": [username],
-            "resultsLimit": settings.POST_LIMIT,
-            "resultsType": "posts",
-        }
+    logger.info("Apify: running task %s ...", task_id)
+    try:
+        run = apify.task(task_id).call()
+    except Exception as exc:
+        logger.error("Apify task call failed for %s: %s", task_id, exc)
+        return 0
 
-        try:
-            run = client.actor("apify/instagram-post-scraper").call(run_input=run_input)
-        except Exception as exc:
-            logger.error("Apify actor call failed for @%s: %s", username, exc)
-            continue
+    dataset_id = run.get("defaultDatasetId") if run else None
+    if not dataset_id:
+        logger.error("Apify task %s finished without a dataset.", task_id)
+        return 0
 
-        dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
-        logger.info("Apify returned %d items for @%s.", len(dataset_items), username)
+    items = apify.dataset(dataset_id).list_items().items
+    logger.info("Apify task %s returned %d item(s).", task_id, len(items))
 
-        async with AsyncSessionLocal() as session:
-            new_count = 0
-            for item in dataset_items:
-                permalink = item.get("url") or item.get("shortCode", "")
-                if permalink and not permalink.startswith("http"):
-                    permalink = f"https://www.instagram.com/p/{permalink}/"
+    total_events = 0
+    total_posts = 0
 
-                if not permalink:
-                    continue
+    async with AsyncSessionLocal() as session:
+        for item in items:
+            permalink = _normalize_permalink(item)
+            if not permalink:
+                logger.debug("Skipping Apify item without permalink: %r", item)
+                continue
 
-                if await _permalink_exists(session, permalink):
-                    continue
+            if await _permalink_exists(session, permalink):
+                continue
 
-                caption = item.get("caption") or ""
-                image_url = item.get("displayUrl") or item.get("imageUrl")
-                ts_raw = item.get("timestamp")
-                ts = None
-                if ts_raw:
-                    try:
-                        ts = datetime.fromisoformat(ts_raw).replace(tzinfo=timezone.utc)
-                    except (ValueError, TypeError):
-                        ts = datetime.now(timezone.utc)
+            caption = item.get("caption") or item.get("text") or ""
+            image_url = _extract_image_url(item)
+            owner = _extract_owner_username(item) or "unknown"
+            ts = _parse_post_timestamp(
+                item.get("timestamp") or item.get("takenAtTimestamp")
+            )
 
-                db_post = Post(
-                    club_username=username,
-                    caption=caption,
-                    timestamp=ts,
-                    image_url=image_url,
-                    permalink=permalink,
-                    processed=False,
+            parts: list = []
+            if image_url:
+                img_bytes = await loop.run_in_executor(
+                    None, partial(_download_image, image_url)
                 )
-                session.add(db_post)
-                await session.flush()
+                if img_bytes:
+                    parts.append(
+                        types.Part.from_bytes(
+                            data=img_bytes, mime_type="image/jpeg"
+                        )
+                    )
 
-                await enqueue(
-                    settings.RAW_POSTS_QUEUE,
-                    {
-                        "post_id": db_post.id,
-                        "club_username": username,
-                        "caption": caption,
-                        "image_url": image_url,
-                        "permalink": permalink,
-                    },
+            prompt = (
+                f"You are analyzing an Instagram post by @{owner}, "
+                f"a UCF student organization account.\n\n"
+                f"Caption:\n\"\"\"\n{caption[:3000]}\n\"\"\"\n\n"
+                "The attached image (if any) is the post's graphic or flyer. "
+                "Determine if this post announces a specific upcoming student "
+                "event. If it does, extract the event details. "
+                "Return JSON matching the schema."
+            )
+            parts.append(prompt)
+
+            try:
+                raw_json = await loop.run_in_executor(
+                    None,
+                    partial(
+                        _call_gemini_sync,
+                        gemini,
+                        parts,
+                        settings.GEMINI_MODEL,
+                    ),
                 )
-                new_count += 1
+                details = EventDetails.model_validate_json(raw_json)
+            except Exception as exc:
+                logger.warning(
+                    "Gemini extraction failed for %s: %s - saving Post only.",
+                    permalink,
+                    exc,
+                )
+                session.add(
+                    Post(
+                        club_username=owner,
+                        caption=caption,
+                        timestamp=ts,
+                        image_url=image_url,
+                        permalink=permalink,
+                        processed=True,
+                    )
+                )
+                total_posts += 1
+                continue
 
-            await session.commit()
-            logger.info("Apify @%s: %d new post(s) saved.", username, new_count)
-            total += new_count
+            db_post = Post(
+                club_username=owner,
+                caption=caption,
+                timestamp=ts,
+                image_url=image_url,
+                permalink=permalink,
+                processed=True,
+            )
+            session.add(db_post)
+            await session.flush()
+            total_posts += 1
 
-    logger.info("Apify failover complete. %d total new posts.", total)
-    return total
+            if not details.is_valid_event:
+                logger.debug("Post %s is not an event - skipped.", permalink)
+                continue
+
+            event = Event(
+                club=owner,
+                title=details.title or "Untitled Event",
+                date=details.date,
+                time=details.time,
+                start_at=_parse_start_at(details.date, details.time),
+                end_at=_parse_start_at(details.date, details.end_time),
+                location=details.location,
+                description=details.description,
+                confidence=0.85,
+                source_post_id=db_post.id,
+            )
+            session.add(event)
+            await session.flush()
+            total_events += 1
+            
+            # Dispatch notifications to followers
+            await _dispatch_auto_invites_for_event(session, event, owner)
+            
+            logger.info(
+                "Extracted event from @%s: %r (start_at=%s, end_at=%s)",
+                owner,
+                event.title,
+                event.start_at,
+                event.end_at,
+            )
+
+        await session.commit()
+
+    logger.info(
+        "Instagram pipeline complete. %d post(s) processed, %d event(s) saved.",
+        total_posts,
+        total_events,
+    )
+    return total_events

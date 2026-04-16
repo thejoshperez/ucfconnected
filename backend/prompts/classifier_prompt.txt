@@ -6,7 +6,7 @@ Post text:
 """
 
 Carefully consider:
-- Does the post mention a specific date, time, or day of week?
+- Does the post mention a specific date, start time, or end time?
 - Does it invite people to attend something?
 - Does it describe a scheduled activity that will happen in the future?
 

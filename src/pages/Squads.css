@@ -5,15 +5,16 @@
 
 /* ── Squads Landing Elements ──────────────────────────────────────────────────── */
 .squads-landing__grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-xl);
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
 @media (max-width: 640px) {
   .squads-landing__grid {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -21,17 +22,20 @@
   flex: 1;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  padding: var(--space-xl);
+  padding: var(--space-2xl) var(--space-xl);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-lg);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
 }
 
 .squad-form-card__title {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: var(--ucf-black);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-xs);
 }
 
 .squad-form-card__input {
@@ -57,11 +61,11 @@
 }
 
 .squad-form-card__btn {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 600;
   color: var(--ucf-black);
   background: var(--ucf-gold);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
@@ -97,18 +101,27 @@
   border-left: 3px solid #ef4444;
 }
 
-/* ── Squad Profile Context ─────────────────────────────────────────────────────── */
 .squad-view__code-block {
-  font-family: var(--font-mono);
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 0.15em;
-  color: var(--ucf-gold-dim);
+  background: var(--bg-elevated);
+  border: 2px dashed rgba(255, 201, 4, 0.4);
+  padding: var(--space-lg) var(--space-2xl);
+  border-radius: var(--radius-lg);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
-  margin-top: var(--space-sm);
+  gap: var(--space-sm);
+  margin: var(--space-xl) auto 0;
+  max-width: 320px;
+  position: relative;
+}
+
+.squad-view__code-block span {
+  font-family: var(--font-mono);
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: var(--ucf-black);
 }
 
 .squad-view__copy-btn {
@@ -133,11 +146,24 @@
   text-align: left;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-xl);
   max-width: 600px;
   margin: var(--space-2xl) auto;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.03);
+}
+
+.squad-view__activity {
+  max-width: 960px;
+  margin: 0 auto var(--space-2xl);
+  text-align: left;
+}
+
+.squad-view__activity h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ucf-black);
+  margin-bottom: var(--space-md);
 }
 
 .squad-view__members h2 {
@@ -190,4 +216,188 @@
   font-size: 0.9rem;
   font-style: italic;
   padding: var(--space-md) 0;
+}
+
+/* ── Auth gate card (SquadsLanding + SquadPage) ─────────────────────────── */
+.squad-auth-gate {
+  justify-content: center;
+  text-align: center;
+}
+
+.squad-auth-gate__msg {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.squad-auth-gate__cta {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin-top: var(--space-xs);
+}
+
+.squad-auth-gate--inline {
+  margin-top: var(--space-xl);
+  max-width: 360px;
+  padding: var(--space-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Join area ───────────────────────────────────────────────────────────── */
+.squad-join-area {
+  margin-top: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.squad-join-area__success {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #16a34a;
+}
+
+/* ── Member name + badges ────────────────────────────────────────────────── */
+.squad-view__member-name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.squad-view__owner-badge,
+.squad-view__you-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  margin-left: 6px;
+}
+
+.squad-view__owner-badge {
+  background: rgba(255, 201, 4, 0.15);
+  color: var(--ucf-gold-dim);
+  border: 1px solid rgba(255, 201, 4, 0.3);
+}
+
+.squad-view__you-badge {
+  background: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+/* ── My Squads cards on landing page ─────────────────────────────────── */
+.squad-my-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+  min-width: 180px;
+  flex: 1 1 calc(50% - 0.75rem);
+}
+
+.squad-my-card:hover {
+  border-color: var(--ucf-gold);
+  box-shadow: 0 4px 12px rgba(255, 201, 4, 0.1);
+  transform: translateY(-2px);
+}
+
+.squad-my-card__name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ucf-black);
+}
+
+.squad-my-card__meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ── Delete squad button (SquadPage) ─────────────────────────────────── */
+.squad-delete-area {
+  margin-top: var(--space-2xl);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.squad-delete-btn {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #b91c1c;
+  background: transparent;
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  padding: var(--space-xs) var(--space-lg);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.squad-delete-btn:hover:not(:disabled) {
+  background: rgba(185, 28, 28, 0.06);
+  border-color: rgba(185, 28, 28, 0.5);
+}
+
+.squad-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.squad-delete-confirm {
+  margin-top: var(--space-sm);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.squad-delete-confirm__yes {
+  font-weight: 700;
+  color: #b91c1c;
+  background: rgba(185, 28, 28, 0.08);
+  border: 1px solid rgba(185, 28, 28, 0.3);
+  padding: 2px var(--space-md);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+.squad-delete-confirm__yes:hover {
+  background: rgba(185, 28, 28, 0.15);
+}
+
+.squad-delete-confirm__cancel {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 2px var(--space-md);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.8rem;
+}
+
+.squad-delete-confirm__cancel:hover {
+  color: var(--ucf-black);
 }

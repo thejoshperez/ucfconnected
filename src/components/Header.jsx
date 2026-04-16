@@ -5,18 +5,23 @@ import './Header.css'
 
 export default function Header() {
   const { pathname } = useLocation()
-  const { username, login, register, logout } = useAuth()
+  const { user, username, login, register, logout, verifyEmail, resendVerification } = useAuth()
 
   const [showAuthPanel, setShowAuthPanel] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
   const [formUser, setFormUser] = useState('')
   const [formPass, setFormPass] = useState('')
+  const [formEmail, setFormEmail] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const [verifyCode, setVerifyCode] = useState('')
+  const [verifyLoading, setVerifyLoading] = useState(false)
+  const [verifyError, setVerifyError] = useState(null)
+  const [resendMsg, setResendMsg] = useState(null)
+
   const panelRef = useRef(null)
 
-  // Close the panel when the user clicks outside it
   useEffect(() => {
     if (!showAuthPanel) return
     function handleClickOutside(e) {
@@ -28,18 +33,18 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showAuthPanel])
 
-  // active: exact for '/', prefix for others
   const navLink = (to) => {
-    const isActive = to === '/' 
-      ? pathname === '/' 
-      : (pathname === to || pathname.startsWith(to + '/'));
-    return `nav__link${isActive ? ' nav__link--active' : ''}`;
+    const isActive = to === '/'
+      ? pathname === '/'
+      : pathname === to || pathname.startsWith(to + '/')
+    return `nav__link${isActive ? ' nav__link--active' : ''}`
   }
 
   function openAuth() {
     setError('')
     setFormUser('')
     setFormPass('')
+    setFormEmail('')
     setIsRegistering(false)
     setShowAuthPanel(true)
   }
@@ -50,7 +55,9 @@ export default function Header() {
     setLoading(true)
     try {
       if (isRegistering) {
-        await register(formUser, formPass)
+        const data = await register(formUser, formPass, formEmail)
+        setResendMsg(data.detail || `Verification code sent to ${formEmail}. Check your inbox.`)
+        setTimeout(() => setResendMsg(null), 6000)
       } else {
         await login(formUser, formPass)
       }
@@ -59,6 +66,34 @@ export default function Header() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleVerify() {
+    setVerifyLoading(true)
+    setVerifyError(null)
+    try {
+      await verifyEmail(verifyCode)
+      setVerifyCode('')
+    } catch (err) {
+      setVerifyError(err.message)
+    } finally {
+      setVerifyLoading(false)
+    }
+  }
+
+  async function handleResend() {
+    setVerifyLoading(true)
+    setVerifyError(null)
+    setResendMsg(null)
+    try {
+      const data = await resendVerification()
+      setResendMsg(data.detail || 'A new verification code is on the way.')
+      setTimeout(() => setResendMsg(null), 5000)
+    } catch (err) {
+      setVerifyError(err.message)
+    } finally {
+      setVerifyLoading(false)
     }
   }
 
@@ -79,11 +114,15 @@ export default function Header() {
           )}
           <Link to="/about" className={navLink('/about')}>About</Link>
 
-          {/* ── Auth area ── */}
           <div className="nav__auth" ref={panelRef}>
             {username ? (
               <>
-                <span className="nav__username">@{username}</span>
+                <Link to="/profile" className="nav__username">
+                  @{username}
+                  {user && !user.email_verified && (
+                    <span className="nav__unverified-dot" title="Email not verified" aria-label="Email not verified" />
+                  )}
+                </Link>
                 <button
                   type="button"
                   className="nav__link nav__link--cta nav__link--logout"
@@ -120,6 +159,17 @@ export default function Header() {
                     value={formUser}
                     onChange={(e) => setFormUser(e.target.value)}
                   />
+                  {isRegistering && (
+                    <input
+                      className="auth-panel__input"
+                      type="email"
+                      placeholder="Email address"
+                      autoComplete="email"
+                      required
+                      value={formEmail}
+                      onChange={(e) => setFormEmail(e.target.value)}
+                    />
+                  )}
                   <input
                     className="auth-panel__input"
                     type="password"
@@ -134,24 +184,73 @@ export default function Header() {
                     className="auth-panel__submit"
                     disabled={loading}
                   >
-                    {loading ? '…' : isRegistering ? 'Register' : 'Login'}
+                    {loading ? '...' : isRegistering ? 'Register' : 'Login'}
                   </button>
                 </form>
 
                 <button
                   type="button"
                   className="auth-panel__toggle"
-                  onClick={() => { setIsRegistering((p) => !p); setError('') }}
+                  onClick={() => { setIsRegistering((p) => !p); setError(''); setFormEmail('') }}
                 >
                   {isRegistering
                     ? 'Already have an account? Sign in'
-                    : "No account? Register"}
+                    : 'No account? Register'}
                 </button>
               </div>
             )}
           </div>
         </nav>
       </div>
+
+      {user && !user.email_verified && (
+        <div className="verification-banner" role="alert">
+          <div className="verification-banner__inner">
+            <div className="verification-banner__copy">
+              <span className="verification-banner__icon" aria-hidden>Email</span>
+              <span className="verification-banner__text">
+                Verify your email{user.email ? ` (${user.email})` : ''}. We sent a 6-digit code to your inbox.
+              </span>
+            </div>
+            <div className="verification-banner__controls">
+              <input
+                className="verification-banner__input"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                placeholder="6-digit code"
+                value={verifyCode}
+                onChange={(e) => {
+                  setVerifyCode(e.target.value.replace(/\D/g, ''))
+                  setVerifyError(null)
+                }}
+                aria-label="Email verification code"
+              />
+              <button
+                className="verification-banner__btn"
+                onClick={handleVerify}
+                disabled={verifyCode.length !== 6 || verifyLoading}
+              >
+                {verifyLoading ? '...' : 'Verify'}
+              </button>
+              <button
+                className="verification-banner__btn verification-banner__btn--ghost"
+                onClick={handleResend}
+                disabled={verifyLoading}
+              >
+                Resend
+              </button>
+            </div>
+          </div>
+          {verifyError && (
+            <p className="verification-banner__error">{verifyError}</p>
+          )}
+          {resendMsg && (
+            <p className="verification-banner__success">{resendMsg}</p>
+          )}
+        </div>
+      )}
     </header>
   )
 }

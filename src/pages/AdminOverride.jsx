@@ -1,18 +1,21 @@
 import { useState } from 'react'
+import { injectAdminEvent } from '../features/events/api'
+import { getErrorMessage, isNetworkError } from '../lib/apiClient'
+import './AdminOverride.css'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const INITIAL_FORM = {
+  title: '',
+  club: '',
+  rso_name: '',
+  date: '',
+  time: '',
+  location: '',
+  description: '',
+  adminKey: '',
+}
 
 export default function AdminOverride() {
-  const [form, setForm] = useState({
-    title: '',
-    club: '',
-    rso_name: '',
-    date: '',
-    time: '',
-    location: '',
-    description: '',
-    adminKey: '',
-  })
+  const [form, setForm] = useState(INITIAL_FORM)
   const [status, setStatus] = useState(null)
 
   function update(field) {
@@ -21,132 +24,145 @@ export default function AdminOverride() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setStatus('Submitting…')
+    setStatus({ tone: 'pending', message: 'Submitting...' })
 
     const { adminKey, ...eventData } = form
 
     try {
-      const res = await fetch(`${API_BASE}/events/admin/inject`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-key': adminKey,
-        },
-        body: JSON.stringify(eventData),
+      const created = await injectAdminEvent(eventData, adminKey)
+      setStatus({
+        tone: 'success',
+        message: `Event #${created.id} created: "${created.title}"`,
       })
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        setStatus(`Error ${res.status}: ${err.detail || res.statusText}`)
-        return
-      }
-
-      const created = await res.json()
-      setStatus(`Event #${created.id} created: "${created.title}"`)
-      setForm((prev) => ({ ...prev, title: '', description: '', date: '', time: '', location: '', rso_name: '' }))
-    } catch (err) {
-      setStatus(`Network error: ${err.message}`)
+      setForm((prev) => ({
+        ...prev,
+        title: '',
+        description: '',
+        date: '',
+        time: '',
+        location: '',
+        rso_name: '',
+      }))
+    } catch (error) {
+      setStatus({
+        tone: 'error',
+        message: isNetworkError(error)
+          ? `Network error: ${getErrorMessage(error, 'Could not reach the API.')}`
+          : getErrorMessage(error, 'Could not inject the event.'),
+      })
     }
   }
 
   return (
-    <div style={{ maxWidth: 520, margin: '2rem auto', padding: '0 1rem' }}>
+    <div className="admin-override">
       <h1>Admin: Inject Featured Event</h1>
-      <p style={{ color: '#888', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-        Events injected here appear at the top of the feed (confidence&nbsp;=&nbsp;1.0).
+      <p className="admin-override__lede">
+        Events injected here appear at the top of the feed.
       </p>
 
       <form onSubmit={handleSubmit}>
-        <fieldset style={{ border: '1px solid #ddd', borderRadius: 8, padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        <fieldset className="admin-override__fieldset">
           <legend>Event Details</legend>
 
           <label>
             Title *
-            <input type="text" required value={form.title} onChange={update('title')} style={inputStyle} />
+            <input
+              type="text"
+              required
+              value={form.title}
+              onChange={update('title')}
+              className="admin-override__input"
+            />
           </label>
 
           <label>
             Club *
-            <input type="text" required value={form.club} onChange={update('club')} style={inputStyle} />
+            <input
+              type="text"
+              required
+              value={form.club}
+              onChange={update('club')}
+              className="admin-override__input"
+            />
           </label>
 
           <label>
             RSO Name
-            <input type="text" value={form.rso_name} onChange={update('rso_name')} style={inputStyle} />
+            <input
+              type="text"
+              value={form.rso_name}
+              onChange={update('rso_name')}
+              className="admin-override__input"
+            />
           </label>
 
           <label>
             Date
-            <input type="text" placeholder="e.g. April 10, 2026" value={form.date} onChange={update('date')} style={inputStyle} />
+            <input
+              type="text"
+              placeholder="e.g. April 10, 2026"
+              value={form.date}
+              onChange={update('date')}
+              className="admin-override__input"
+            />
           </label>
 
           <label>
             Time
-            <input type="text" placeholder="e.g. 6:00 PM" value={form.time} onChange={update('time')} style={inputStyle} />
+            <input
+              type="text"
+              placeholder="e.g. 6:00 PM"
+              value={form.time}
+              onChange={update('time')}
+              className="admin-override__input"
+            />
           </label>
 
           <label>
             Location
-            <input type="text" value={form.location} onChange={update('location')} style={inputStyle} />
+            <input
+              type="text"
+              value={form.location}
+              onChange={update('location')}
+              className="admin-override__input"
+            />
           </label>
 
           <label>
             Description
-            <textarea rows={3} value={form.description} onChange={update('description')} style={inputStyle} />
+            <textarea
+              rows={3}
+              value={form.description}
+              onChange={update('description')}
+              className="admin-override__input admin-override__textarea"
+            />
           </label>
         </fieldset>
 
-        <fieldset style={{ border: '1px solid #c00', borderRadius: 8, padding: '1rem', marginTop: '1rem' }}>
-          <legend style={{ color: '#c00' }}>Authentication</legend>
+        <fieldset className="admin-override__fieldset admin-override__fieldset--danger">
+          <legend>Authentication</legend>
           <label>
             Admin Secret Key *
-            <input type="password" required value={form.adminKey} onChange={update('adminKey')} style={inputStyle} />
+            <input
+              type="password"
+              required
+              value={form.adminKey}
+              onChange={update('adminKey')}
+              className="admin-override__input"
+            />
           </label>
         </fieldset>
 
-        <button
-          type="submit"
-          style={{
-            marginTop: '1rem',
-            width: '100%',
-            padding: '0.75rem',
-            background: '#0a0a0a',
-            color: '#FFC904',
-            border: 'none',
-            borderRadius: 8,
-            fontWeight: 600,
-            fontSize: '1rem',
-            cursor: 'pointer',
-          }}
-        >
+        <button type="submit" className="admin-override__submit">
           Inject Event
         </button>
       </form>
 
       {status && (
-        <p style={{
-          marginTop: '1rem',
-          padding: '0.75rem',
-          background: status.startsWith('Error') || status.startsWith('Network')
-            ? '#fff0f0' : '#f0fff0',
-          borderRadius: 8,
-          fontSize: '0.875rem',
-        }}>
-          {status}
+        <p className={`admin-override__status admin-override__status--${status.tone}`}>
+          {status.message}
         </p>
       )}
     </div>
   )
-}
-
-const inputStyle = {
-  display: 'block',
-  width: '100%',
-  padding: '0.5rem',
-  marginTop: '0.25rem',
-  border: '1px solid #ddd',
-  borderRadius: 6,
-  fontSize: '0.9rem',
-  fontFamily: 'inherit',
-  boxSizing: 'border-box',
 }

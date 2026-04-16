@@ -1,0 +1,129 @@
+run_scraper-1  | 2026-04-16 04:06:43 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 04:06:43 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (base layer) ═══
+run_scraper-1  | 2026-04-16 04:06:43 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 04:06:43 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 04:06:43 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 04:06:43 | INFO     | __main__: KnightConnect produced 0 new post(s).
+run_scraper-1  | 2026-04-16 04:06:43 | INFO     | __main__: ═══ Phase 2/2: Instagram ═══
+run_scraper-1  | 2026-04-16 04:06:49 | INFO     | scraper.instagram_scraper: Logged into Instagram as howtofart101
+run_scraper-1  | 2026-04-16 04:06:49 | INFO     | scraper.instagram_scraper: Scraping @ucfacm …
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=ucfacm: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=ucfacm [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    1
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 04:37.
+run_scraper-1  | 2026-04-16 04:27:31 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 04:27:31 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (base layer) ═══
+run_scraper-1  | 2026-04-16 04:27:31 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 04:27:32 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 04:27:32 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 04:27:32 | INFO     | __main__: KnightConnect produced 0 new post(s).
+run_scraper-1  | 2026-04-16 04:27:32 | INFO     | __main__: ═══ Phase 2/2: Instagram ═══
+run_scraper-1  | 2026-04-16 04:27:38 | INFO     | scraper.instagram_scraper: Logged into Instagram as howtofart101
+run_scraper-1  | 2026-04-16 04:27:38 | INFO     | scraper.instagram_scraper: Scraping @ucfacm …
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=ucfacm: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=ucfacm [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    1
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 04:57.
+run_scraper-1  | 2026-04-16 12:30:01 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 12:30:01 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (base layer) ═══
+run_scraper-1  | 2026-04-16 12:30:01 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 12:30:02 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 12:30:02 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 12:30:02 | INFO     | __main__: KnightConnect produced 0 new post(s).
+run_scraper-1  | 2026-04-16 12:30:02 | INFO     | __main__: ═══ Phase 2/2: Instagram ═══
+run_scraper-1  | 2026-04-16 12:30:06 | INFO     | scraper.instagram_scraper: Logged into Instagram as howtofart101
+run_scraper-1  | 2026-04-16 12:30:06 | INFO     | scraper.instagram_scraper: Scraping @ucfacm …
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=ucfacm: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=ucfacm [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    1
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 13:00.
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=ucfacm: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=ucfacm [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    2
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 13:30.
+run_scraper-1  | 2026-04-16 13:30:45 | ERROR    | scraper.instagram_scraper: Failed to load profile @ucfacm: JSON Query to api/v1/users/web_profile_info/?username=ucfacm: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=ucfacm
+run_scraper-1  | 2026-04-16 13:30:45 | INFO     | scraper.instagram_scraper: Scraping @hack_ucf …
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=hack_ucf: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=hack_ucf [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    2    2    2    2    2    3
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 14:01.
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=hack_ucf: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=hack_ucf [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    3
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 14:31.
+run_scraper-1  | 2026-04-16 14:31:26 | ERROR    | scraper.instagram_scraper: Failed to load profile @hack_ucf: JSON Query to api/v1/users/web_profile_info/?username=hack_ucf: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=hack_ucf
+run_scraper-1  | 2026-04-16 14:31:26 | INFO     | scraper.instagram_scraper: Scraping @_ucfai …
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=_ucfai: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=_ucfai [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    2    2    2    2    2    3
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 15:01.
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=_ucfai: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=_ucfai [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    3
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 15:32.
+run_scraper-1  | 2026-04-16 15:20:44 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 15:20:44 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (base layer) ═══
+run_scraper-1  | 2026-04-16 15:20:44 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 15:20:44 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 15:20:44 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 15:20:44 | INFO     | __main__: KnightConnect produced 0 new post(s).
+run_scraper-1  | 2026-04-16 15:20:44 | INFO     | __main__: ═══ Phase 2/2: Instagram ═══
+run_scraper-1  | 2026-04-16 15:20:53 | INFO     | scraper.instagram_scraper: Logged into Instagram as howtofart101
+run_scraper-1  | 2026-04-16 15:20:53 | INFO     | scraper.instagram_scraper: Scraping @ucfacm …
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=ucfacm: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=ucfacm [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    1
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 15:51.
+run_scraper-1  | 2026-04-16 15:22:28 | INFO     | db.database: Database tables initialised.
+run_scraper-1  | 2026-04-16 15:22:28 | INFO     | __main__: ═══ Phase 1/2: KnightConnect (base layer) ═══
+run_scraper-1  | 2026-04-16 15:22:28 | INFO     | scraper.knightconnect_scraper: Scraping KnightConnect events page …
+run_scraper-1  | 2026-04-16 15:22:29 | INFO     | httpx: HTTP Request: GET https://knightconnect.campuslabs.com/engage/events "HTTP/1.1 200 OK"
+run_scraper-1  | 2026-04-16 15:22:29 | WARNING  | scraper.knightconnect_scraper: KnightConnect returned 0 parseable events — page structure may have changed.
+run_scraper-1  | 2026-04-16 15:22:29 | INFO     | __main__: KnightConnect produced 0 new post(s).
+run_scraper-1  | 2026-04-16 15:22:29 | INFO     | __main__: ═══ Phase 2/2: Instagram ═══
+run_scraper-1  | 2026-04-16 15:22:35 | INFO     | scraper.instagram_scraper: Logged into Instagram as howtofart101
+run_scraper-1  | 2026-04-16 15:22:35 | INFO     | scraper.instagram_scraper: Scraping @ucfacm …
+run_scraper-1  | JSON Query to api/v1/users/web_profile_info/?username=ucfacm: 429 Too Many Requests when accessing https://i.instagram.com/api/v1/users/web_profile_info/?username=ucfacm [retrying; skip with ^C]
+run_scraper-1  | Number of requests within last 10/11/20/22/30/60 minutes grouped by type:
+run_scraper-1  |  *                           iphone:    1    1    1    1    1    1
+run_scraper-1  | Instagram responded with HTTP error "429 - Too Many Requests". Please
+run_scraper-1  | do not run multiple instances of Instaloader in parallel or within
+run_scraper-1  | short sequence. Also, do not use any Instagram App while Instaloader
+run_scraper-1  | is running.
+run_scraper-1  | The request will be retried in 30 minutes, at 15:52.

@@ -1,0 +1,10 @@
+run_scraper-1  | Traceback (most recent call last):
+run_scraper-1  |   File "/app/run_scraper.py", line 43, in <module>
+run_scraper-1  |     from scraper.instagram_scraper import scrape_instagram_apify
+run_scraper-1  |   File "/app/scraper/instagram_scraper.py", line 25, in <module>
+run_scraper-1  |     from apify_client import ApifyClient
+run_scraper-1  |   File "/usr/local/lib/python3.13/site-packages/apify_client/__init__.py", line 3, in <module>
+run_scraper-1  |     from .client import ApifyClient, ApifyClientAsync
+run_scraper-1  |   File "/usr/local/lib/python3.13/site-packages/apify_client/client.py", line 3, in <module>
+run_scraper-1  |     from apify_shared.utils import ignore_docs
+run_scraper-1  | ImportError: cannot import name 'ignore_docs' from 'apify_shared.utils' (/usr/local/lib/python3.13/site-packages/apify_shared/utils.py)

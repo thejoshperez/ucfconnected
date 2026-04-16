@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker exec ucfconnected-api-1 python3 -c ' *)",
+      "Bash(curl -s http://localhost:8000/squads/mine -H 'Authorization: Bearer __TRACKED_VAR__' -w '\\\\nHTTP:%{http_code}\\\\n')"
+    ]
+  }
+}

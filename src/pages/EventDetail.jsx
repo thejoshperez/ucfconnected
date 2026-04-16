@@ -1,129 +1,50 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { useEventDetailData, useRsvpAction } from '../features/events/hooks'
 import NotFound from './NotFound'
 import './Events.css'
 import './EventDetail.css'
 import '../components/EventCard.css'
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-
-function confidenceClass(confidence) {
-  if (confidence >= 0.85) return 'event-card__confidence--high'
-  if (confidence < 0.65) return 'event-card__confidence--low'
-  return ''
-}
-
-function confidenceLabel(confidence) {
-  return `${Math.round(confidence * 100)}% match`
-}
-
-function parseEventDateTime(dateStr, timeStr) {
-  if (!dateStr) return null
-
-  const isoAttempt = new Date(dateStr)
-  if (!isNaN(isoAttempt.getTime())) {
-    const start = isoAttempt
-    const end = new Date(start.getTime() + 60 * 60 * 1000)
-    return { start, end, allDay: false }
-  }
-
-  const currentYear = new Date().getFullYear()
-  const dateWithYear = /\d{4}/.test(dateStr) ? dateStr : `${dateStr} ${currentYear}`
-  const combined = timeStr ? `${dateWithYear} ${timeStr}` : dateWithYear
-  const loose = new Date(combined)
-  if (!isNaN(loose.getTime())) {
-    const start = loose
-    const end = new Date(start.getTime() + 60 * 60 * 1000)
-    return { start, end, allDay: !timeStr }
-  }
-
-  return null
-}
-
-function formatForGoogleCal(date, allDay) {
-  if (allDay) {
-    const y = date.getFullYear()
-    const m = String(date.getMonth() + 1).padStart(2, '0')
-    const d = String(date.getDate()).padStart(2, '0')
-    return `${y}${m}${d}`
-  }
-  return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
-}
-
-function generateGoogleCalendarUrl(event) {
-  const base = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
-  const params = new URLSearchParams()
-  params.set('text', event.title || 'Untitled Event')
-
-  const detailsParts = []
-  if (event.description) detailsParts.push(event.description)
-  if (event.club) detailsParts.push(`Hosted by @${event.club}`)
-  if (event.source_post_permalink) detailsParts.push(`Source: ${event.source_post_permalink}`)
-  if (detailsParts.length) params.set('details', detailsParts.join('\n\n'))
-
-  if (event.location) params.set('location', event.location)
-
-  const parsed = parseEventDateTime(event.date, event.time)
-  if (parsed) {
-    const startStr = formatForGoogleCal(parsed.start, parsed.allDay)
-    const endStr = formatForGoogleCal(parsed.end, parsed.allDay)
-    params.set('dates', `${startStr}/${endStr}`)
-  }
-
-  return `${base}&${params.toString()}`
-}
+import {
+  getEventDisplayDateTime,
+  getGoogleCalendarUrl,
+} from '../utils/eventActions'
 
 export default function EventDetail() {
   const { id } = useParams()
-  const [event, setEvent] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)   // null | error message string
-  const [notFound, setNotFound] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const { user, token } = useAuth()
+  const { event, loading, error, notFound } = useEventDetailData(id, token)
+  const [going, setGoing] = useState(false)
+  const {
+    submit: submitRsvp,
+    submitting: rsvpLoading,
+    error: rsvpError,
+  } = useRsvpAction(id, token)
 
   useEffect(() => {
-    async function fetchEvent() {
-      try {
-        const res = await fetch(`${API_BASE}/events/${id}`)
-        if (res.status === 404) {
-          setNotFound(true)
-          return
-        }
-        if (!res.ok) {
-          throw new Error(`Could not load event (${res.status})`)
-        }
-        const data = await res.json()
-        setEvent(data)
-        document.title = data.title ? `${data.title} | KnightLife` : 'KnightLife'
-        
-        if (data.title) {
-          let ogTitle = document.querySelector('meta[property="og:title"]')
-          if (!ogTitle) {
-            ogTitle = document.createElement('meta')
-            ogTitle.setAttribute('property', 'og:title')
-            document.head.appendChild(ogTitle)
-          }
-          ogTitle.setAttribute('content', data.title)
-        }
-        
-        if (data.description) {
-          let ogDesc = document.querySelector('meta[property="og:description"]')
-          if (!ogDesc) {
-            ogDesc = document.createElement('meta')
-            ogDesc.setAttribute('property', 'og:description')
-            document.head.appendChild(ogDesc)
-          }
-          ogDesc.setAttribute('content', data.description)
-        }
+    document.title = event?.title ? `${event.title} | KnightLife` : 'KnightLife'
 
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
+    if (event?.title) {
+      let ogTitle = document.querySelector('meta[property="og:title"]')
+      if (!ogTitle) {
+        ogTitle = document.createElement('meta')
+        ogTitle.setAttribute('property', 'og:title')
+        document.head.appendChild(ogTitle)
       }
+      ogTitle.setAttribute('content', event.title)
     }
-    fetchEvent()
-    
+
+    if (event?.description) {
+      let ogDesc = document.querySelector('meta[property="og:description"]')
+      if (!ogDesc) {
+        ogDesc = document.createElement('meta')
+        ogDesc.setAttribute('property', 'og:description')
+        document.head.appendChild(ogDesc)
+      }
+      ogDesc.setAttribute('content', event.description)
+    }
+
     return () => {
       document.title = 'KnightLife'
       const ogTitle = document.querySelector('meta[property="og:title"]')
@@ -131,50 +52,26 @@ export default function EventDetail() {
       const ogDesc = document.querySelector('meta[property="og:description"]')
       if (ogDesc) ogDesc.setAttribute('content', '')
     }
-  }, [id])
+  }, [event])
 
-  async function handleShare() {
-    if (!event) return
-    const eventUrl = `${window.location.origin}/events/${event.id}`
+  useEffect(() => {
+    setGoing(Boolean(event?.current_user_going))
+  }, [event?.current_user_going])
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: event.title,
-          text: 'Check out this event on KnightLife!',
-          url: eventUrl,
-        })
-        return
-      } catch (err) {
-        if (err.name === 'AbortError') return
-        console.error('[Share] navigator.share failed:', err)
-      }
-    }
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(eventUrl)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-        return
-      } catch (err) {
-        console.error('[Share] navigator.clipboard.writeText failed:', err)
-      }
-    } else {
-      console.warn('[Share] navigator.clipboard unavailable (insecure context or unsupported browser)')
-    }
-
+  async function handleRsvp() {
+    if (!token) return
     try {
-      window.prompt('Copy this link:', eventUrl)
-    } catch (err) {
-      console.error('[Share] window.prompt failed — nothing more we can do:', err)
+      await submitRsvp()
+      setGoing(true)
+    } catch {
+      // Hook state already captures the error message.
     }
   }
 
   if (loading) {
     return (
       <div className="event-detail">
-        <Link to="/events" className="event-detail__back">← Back to Events</Link>
+        <Link to="/events" className="event-detail__back">Back to Events</Link>
         <div className="event-detail__loading-state">
           <div className="events-page__spinner" aria-label="Loading event" />
         </div>
@@ -189,31 +86,29 @@ export default function EventDetail() {
   if (error || !event) {
     return (
       <div className="event-detail">
-        <Link to="/events" className="event-detail__back">← Back to Events</Link>
+        <Link to="/events" className="event-detail__back">Back to Events</Link>
         <p className="event-detail__error-msg">
-          Could not load this event — the API may be unavailable.
+          Could not load this event - the API may be unavailable.
         </p>
       </div>
     )
   }
 
-  const { title, club, date, time, location, description, confidence, source_post_permalink } = event
+  const { title, club, location, description, source_post_permalink } = event
+  const { dateText, timeText } = getEventDisplayDateTime(event)
+  const calendarUrl = getGoogleCalendarUrl(event)
 
   return (
     <div className="event-detail">
-      <Link to="/events" className="event-detail__back">← Back to Events</Link>
+      <Link to="/events" className="event-detail__back">Back to Events</Link>
 
       <div className="event-detail__hero">
-        {(date || time) && (
+        {(dateText || timeText) && (
           <div className="event-detail__date-badge">
-            {date && <span>{date}</span>}
-            {time && <span>{time}</span>}
+            {dateText && <span>{dateText}</span>}
+            {timeText && <span>{timeText}</span>}
           </div>
         )}
-        <span className={`event-card__confidence ${confidenceClass(confidence)}`}>
-          <span className="event-card__confidence-dot" />
-          {confidenceLabel(confidence)}
-        </span>
       </div>
 
       <h1 className="event-detail__title">{title}</h1>
@@ -226,7 +121,7 @@ export default function EventDetail() {
 
       {location && (
         <p className="event-detail__location">
-          <span aria-hidden>📍</span>{location}
+          <span className="event-card__location-label" aria-hidden>At</span>{location}
         </p>
       )}
 
@@ -234,19 +129,63 @@ export default function EventDetail() {
         <p className="event-detail__description">{description}</p>
       )}
 
+      {going && (
+        <p className="event-card__attendance event-card__attendance--self">
+          You&apos;re going
+        </p>
+      )}
+
+      {event.squad_members_going?.length > 0 && (
+        <p className="event-card__attendance event-card__attendance--squad">
+          {event.squad_members_going.length === 1
+            ? `@${event.squad_members_going[0]} is going`
+            : `${event.squad_members_going.length} squad members going`}
+        </p>
+      )}
+
       <hr className="event-detail__divider" />
 
       <div className="event-detail__actions">
-        <a href={generateGoogleCalendarUrl(event)} target="_blank" rel="noopener noreferrer"
-           className="event-card__calendar">Add to Cal</a>
-        <button className="event-card__share" onClick={handleShare}>
-          {copied ? 'Copied!' : 'Share ↗'}
-        </button>
+        {user && (
+          going ? (
+            <button type="button" className="event-card__action event-card__action--secondary" disabled>Going</button>
+          ) : (
+            <button
+              type="button"
+              className="event-card__action event-card__action--secondary"
+              onClick={handleRsvp}
+              disabled={rsvpLoading}
+            >
+              {rsvpLoading ? '...' : "I'm Going"}
+            </button>
+          )
+        )}
+        {calendarUrl && (
+          <a
+            href={calendarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="event-card__action event-card__action--primary"
+          >
+            Add to Calendar
+          </a>
+        )}
         {source_post_permalink && (
-          <a href={source_post_permalink} target="_blank" rel="noopener noreferrer"
-             className="event-card__source">View post ↗</a>
+          <a
+            href={source_post_permalink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="event-card__action event-card__action--ghost"
+          >
+            View Post
+          </a>
         )}
       </div>
+      {rsvpError && (
+        <p style={{ color: '#b91c1c', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+          {rsvpError}
+        </p>
+      )}
     </div>
   )
 }

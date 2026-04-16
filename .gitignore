@@ -23,3 +23,10 @@ dist/
 # Docker
 *.tar
 docker-compose.override.yml
+
+# Scraper & log files
+*.log
+out.txt
+out2.txt
+backend/error_log.txt
+backend/out*.txt

@@ -13,12 +13,13 @@
 | Event feed filtered to followed clubs | Shipped |
 | All campus events with AI confidence scores | Shipped |
 | Filter by Upcoming / Today / All | Shipped |
+| Squads: Create/join private groups via invite codes | Shipped |
+| Contextual squad attendance badges | Shipped |
 | One-click Add to Google Calendar | Shipped |
 | Share event links (native share / clipboard) | Shipped |
 | Individual event detail pages | Shipped |
-| Register / sign in (JWT auth) | Shipped |
+| Register / sign in (JWT auth + email verification) | Shipped |
 | Mobile-responsive + installable PWA | Shipped |
-| Admin event injection (dev only) | Shipped |
 
 ---
 
@@ -28,9 +29,9 @@
 
 **Backend:** Python 3.13 · FastAPI · SQLAlchemy 2.0 async · asyncpg · PostgreSQL 16
 
-**AI Pipeline:** Google Gemini Flash (event extraction) · Phi-3 via Ollama (classifier)
+**AI Pipeline:** Google Gemini 2.0 Flash (vision + text extraction)
 
-**Infrastructure:** Redis (scrape queue) · Tesseract OCR · Docker Compose
+**Infrastructure:** Apify (Instagram Scraper) · Docker Compose
 
 **Auth:** JWT (PyJWT + bcrypt)
 
@@ -152,7 +153,11 @@ A complete demo takes about 3 minutes:
 - Navigate to `/feed` → events from followed clubs appear
 - Follow more clubs → feed updates
 
-**5. About page**
+**5. Squads (Viral Mechanics)**
+- Navigate to `/squads` → create a squad or join one using a 6-character code
+- Open an event card and click "RSVP" → see your squad members' attendance contextualized!
+
+**6. About page**
 - `/about` explains how the app works
 
 ---
@@ -185,11 +190,10 @@ A complete demo takes about 3 minutes:
 | Variable | Default | Description |
 |---|---|---|
 | `GEMINI_MODEL` | `gemini-2.0-flash` | Gemini model to use |
-| `INSTAGRAM_USERNAME` | — | IG account for authenticated scraping |
-| `INSTAGRAM_PASSWORD` | — | IG account password |
-| `CLUB_ACCOUNTS` | — | Comma-separated Instagram handles to scrape |
+| `APIFY_API_TOKEN` | — | Apify token for executing scraper |
+| `APIFY_INSTAGRAM_TASK_ID` | — | Task ID for the linked apify actor |
 | `DATABASE_URL` | local postgres | Override with Docker service name in containers |
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection string |
+| `REDIS_URL` | `redis://localhost:6379/0` | Optional Redis connection string |
 
 ---
 
@@ -237,15 +241,15 @@ ucfconnected/
 │   ├── components/         # Header, Footer, ClubCard, EventCard, Hero, ...
 │   ├── context/            # AuthContext (JWT + follow state)
 │   ├── data/               # clubs.js (static club data)
-│   └── pages/              # Home, Events, EventDetail, ClubEvents, MyFeed, About
+│   └── pages/              # Home, Events, EventDetail, ClubEvents, MyFeed, Squads
 ├── backend/
 │   ├── api/
 │   │   ├── main.py         # FastAPI app + CORS + lifespan
 │   │   └── routes/         # events.py, auth.py, squads.py
 │   ├── db/
-│   │   ├── models.py       # Post, Event, User, Follow
+│   │   ├── models.py       # Post, Event, User, Follow, Squad, SquadMember
 │   │   └── database.py     # Async SQLAlchemy session
-│   ├── workers/            # extractor_worker.py, classifier_worker.py
+│   ├── scraper/            # instagram_scraper.py (Apify task execution)
 │   ├── seed_events.py      # Demo data seeder (--force to re-seed)
 │   └── requirements.txt
 ├── docker-compose.yml      # PostgreSQL + Redis + API

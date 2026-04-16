@@ -45,7 +45,7 @@ app = FastAPI(
     title="KnightLife Events API",
     description=(
         "Automatically detected campus events scraped from UCF club Instagram accounts. "
-        "Powered by Instaloader + Ollama (Phi-3 + Mistral 7B) + OCR."
+        "Powered by Apify + Google Gemini 2.0 Flash."
     ),
     version="1.0.0",
     lifespan=lifespan,
@@ -58,7 +58,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )
 

@@ -12,6 +12,7 @@ import NotFound from './pages/NotFound'
 import MyFeed from './pages/MyFeed'
 import SquadsLanding from './pages/SquadsLanding'
 import SquadPage from './pages/SquadPage'
+import Profile from './pages/Profile'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
@@ -36,6 +37,7 @@ function App() {
           <Route path="/feed" element={<MyFeed />} />
           <Route path="/squads" element={<SquadsLanding />} />
           <Route path="/squads/:code" element={<SquadPage />} />
+          <Route path="/profile" element={<Profile />} />
           <Route 
             path="/admin-override" 
             element={

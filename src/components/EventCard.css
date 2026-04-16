@@ -3,6 +3,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
@@ -14,24 +15,13 @@
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
 }
 
-/* ── Header row: icon + date/time badge ───────────────────────────────── */
 .event-card__header {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.event-card__icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 201, 4, 0.15);
-  color: var(--ucf-gold-dim);
-  border-radius: var(--radius-md);
-  font-size: 1.25rem;
-  flex-shrink: 0;
+  justify-content: flex-end;
+  pointer-events: none;
 }
 
 .event-card__datetime {
@@ -52,7 +42,6 @@
   display: block;
 }
 
-/* ── Club badge ──────────────────────────────────────────────────────── */
 .event-card__club {
   display: inline-flex;
   align-items: center;
@@ -65,6 +54,7 @@
   border-radius: var(--radius-full);
   padding: 2px var(--space-sm);
   width: fit-content;
+  max-width: calc(100% - 8.5rem);
 }
 
 .event-card__club-at {
@@ -72,7 +62,6 @@
   font-weight: 700;
 }
 
-/* ── Title ───────────────────────────────────────────────────────────── */
 .event-card__title {
   font-size: 1.15rem;
   font-weight: 700;
@@ -81,7 +70,6 @@
   line-height: 1.3;
 }
 
-/* ── Description ─────────────────────────────────────────────────────── */
 .event-card__description {
   font-size: 0.92rem;
   color: var(--text-muted);
@@ -89,7 +77,6 @@
   flex-grow: 1;
 }
 
-/* ── Location ────────────────────────────────────────────────────────── */
 .event-card__location {
   font-size: 0.875rem;
   color: var(--text-soft);
@@ -98,103 +85,121 @@
   gap: var(--space-sm);
 }
 
-/* ── Confidence pill ─────────────────────────────────────────────────── */
-.event-card__confidence {
+.event-card__location-label {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ucf-gold-dim);
+}
+
+.event-card__attendance {
+  width: fit-content;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-soft);
-  background: var(--bg);
-  border: 1px solid var(--border);
+  padding: 0.3rem 0.7rem;
   border-radius: var(--radius-full);
-  padding: 2px var(--space-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
-.event-card__confidence-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ucf-gold);
+.event-card__attendance--self {
+  color: #166534;
+  background: rgba(22, 163, 74, 0.12);
 }
 
-.event-card__confidence--high .event-card__confidence-dot {
-  background: #22c55e;
+.event-card__attendance--squad {
+  color: var(--ucf-gold-dim);
+  background: rgba(255, 201, 4, 0.12);
 }
 
-.event-card__confidence--low .event-card__confidence-dot {
-  background: #f59e0b;
-}
-
-/* ── Footer ──────────────────────────────────────────────────────────── */
 .event-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
+  display: block;
   padding-top: var(--space-sm);
   border-top: 1px solid var(--border);
 }
 
-.event-card__source {
-  font-size: 0.8rem;
-  color: var(--ucf-gold-dim);
-  font-weight: 500;
-  transition: color var(--transition-fast);
-}
-
-.event-card__source:hover {
-  color: var(--ucf-black);
-}
-
-/* ── Share button + action group ────────────────────────────────────── */
 .event-card__actions {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: var(--space-sm);
+  width: 100%;
 }
 
-.event-card__share {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--bg-card);
-  background: var(--ucf-black);
-  border-radius: var(--radius-full);
-  padding: 4px var(--space-md);
-  transition: background var(--transition-fast), transform var(--transition-fast);
-}
-
-.event-card__share:hover {
-  background: var(--ucf-gold-dim);
-  color: var(--ucf-black);
-  transform: translateY(-1px);
-}
-
-.event-card__share:active {
-  transform: translateY(0);
-}
-
-/* ── Add to Cal button ──────────────────────────────────────────────── */
-.event-card__calendar {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--ucf-black);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  padding: 4px var(--space-md);
+.event-card__action {
+  min-height: 48px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-md);
+  border-radius: calc(var(--radius-md) + 2px);
+  border: 1px solid transparent;
+  font-size: 0.86rem;
+  font-weight: 700;
   text-decoration: none;
-  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.event-card__calendar:hover {
-  background: rgba(255, 201, 4, 0.15);
-  border-color: rgba(255, 201, 4, 0.5);
+.event-card__action:hover {
   transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
 }
 
-.event-card__calendar:active {
+.event-card__action:active {
   transform: translateY(0);
+  box-shadow: none;
+}
+
+.event-card__action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.event-card__action--primary {
+  color: var(--ucf-black);
+  background: linear-gradient(135deg, #ffd54d 0%, var(--ucf-gold) 100%);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.event-card__action--primary:hover {
+  color: var(--ucf-black);
+  background: linear-gradient(135deg, #ffdd73 0%, #f0c400 100%);
+}
+
+.event-card__action--secondary {
+  color: #fff;
+  background: var(--ucf-black);
+  border-color: var(--ucf-black);
+}
+
+.event-card__action--secondary:hover {
+  color: #fff;
+  background: #1f1f1f;
+}
+
+.event-card__action--ghost {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--border);
+}
+
+.event-card__action--ghost:hover {
+  color: var(--ucf-black);
+  background: rgba(255, 201, 4, 0.12);
+  border-color: rgba(255, 201, 4, 0.45);
+}
+
+@media (max-width: 640px) {
+  .event-card__actions {
+    grid-template-columns: 1fr;
+  }
 }

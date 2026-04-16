@@ -73,10 +73,10 @@
 }
 
 .event-detail__actions {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--space-sm);
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .event-detail__loading-state {
@@ -95,5 +95,9 @@
 @media (max-width: 480px) {
   .event-detail__hero {
     flex-direction: column;
+  }
+
+  .event-detail__actions {
+    grid-template-columns: 1fr;
   }
 }
