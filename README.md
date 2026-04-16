@@ -4,6 +4,29 @@
 
 ---
 
+## Inspiration
+It's surprisingly hard for college students to find out what's going on around campus. Most announcements are scattered across different social media platforms, mostly Instagram, which creates a messy and noisy experience.
+
+## What it does
+KnightLife is a central hub for campus events. You can browse clubs, follow organizations you care about, see their events compiled on a dedicated feed, and add events straight to Google Calendar. We also added "Squads", allowing you to form private friend groups to see exactly who in your circle is attending what events!
+
+## How we built it
+The frontend was built using React and Vite, delivering a fast PWA-ready experience. The backend uses a robust Python FastAPI + PostgreSQL architecture. At the heart of the app is our automation pipeline: we scrape university club Instagram pages with Apify, feed the post image and caption context directly into **Google Gemini 2.0 Flash** to extract strict, structured JSON data using native Pydantic schemas, and store everything in our database automatically. 
+
+## Challenges we ran into
+Extracting event data (date, time, title, location) from Instagram flyers and abstract Gen-Z captions in a heavily unstructured format was incredibly difficult, but Google Gemini was excellent. Furthermore, figuring out how to build the "Squad context" dynamically on our public-facing event endpoints required some creative FastAPI dependency injections and efficient SQL query joining.
+
+## Accomplishments that we're proud of
+We are proud to have built a full-stack, deployed, production-ready system with a totally automated AI ingestion pipeline. Our Squad attendance feature maps seamlessly over an intuitive UI to make KnightLife highly engaging.
+
+## What we learned
+We learned the power of standardizing structured AI outputs! We also learned how to use FastAPI dependency injections efficiently alongside SQLAlchemy schemas to quickly surface contextual data without the deadly N+1 query problem.
+
+## What's next for KnightLife
+Moving forward we'd like to integrate direct push notifications and potentially host the platform as a real source of truth for our university!
+
+---
+
 ## Features
 
 | Feature | Status |
