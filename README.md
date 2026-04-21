@@ -11,7 +11,7 @@ It's surprisingly hard for college students to find out what's going on around c
 KnightLife is a central hub for campus events. You can browse clubs, follow organizations you care about, see their events compiled on a dedicated feed, and add events straight to Google Calendar. We also added "Squads", allowing you to form private friend groups to see exactly who in your circle is attending what events!
 
 ## How we built it
-The frontend was built using React and Vite, delivering a fast PWA-ready experience. The backend uses a robust Python FastAPI + PostgreSQL architecture. At the heart of the app is our automation pipeline: we scrape university club Instagram pages with Apify, feed the post image and caption context directly into **Google Gemini 2.0 Flash** to extract strict, structured JSON data using native Pydantic schemas, and store everything in our database automatically. 
+The frontend was built using React and Vite, delivering a fast PWA-ready experience. The backend uses a robust Python FastAPI + PostgreSQL architecture. At the heart of the app is our automation pipeline: we scrape university club Instagram pages with Apify, feed the post image and caption context directly into **Google Gemini 3.1 Flash** to extract strict, structured JSON data using native Pydantic schemas, and store everything in our database automatically. 
 
 ## Challenges we ran into
 Extracting event data (date, time, title, location) from Instagram flyers and abstract Gen-Z captions in a heavily unstructured format was incredibly difficult, but Google Gemini was excellent. Furthermore, figuring out how to build the "Squad context" dynamically on our public-facing event endpoints required some creative FastAPI dependency injections and efficient SQL query joining.
@@ -24,25 +24,6 @@ We learned the power of standardizing structured AI outputs! We also learned how
 
 ## What's next for KnightLife
 Moving forward we'd like to integrate direct push notifications and potentially host the platform as a real source of truth for our university!
-
----
-
-## Features
-
-| Feature | Status |
-|---|---|
-| Browse 13 UCF clubs with expandable cards | Shipped |
-| Follow clubs (requires account) | Shipped |
-| Event feed filtered to followed clubs | Shipped |
-| All campus events with AI confidence scores | Shipped |
-| Filter by Upcoming / Today / All | Shipped |
-| Squads: Create/join private groups via invite codes | Shipped |
-| Contextual squad attendance badges | Shipped |
-| One-click Add to Google Calendar | Shipped |
-| Share event links (native share / clipboard) | Shipped |
-| Individual event detail pages | Shipped |
-| Register / sign in (JWT auth + email verification) | Shipped |
-| Mobile-responsive + installable PWA | Shipped |
 
 ---
 
